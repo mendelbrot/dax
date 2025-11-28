@@ -3,9 +3,11 @@ package schema
 import (
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
@@ -57,5 +59,15 @@ func (Entry) Indexes() []ent.Index {
 			Annotations(entsql.Desc()),
 		index.Fields("updated_at").
 			Annotations(entsql.Desc()),
+	}
+}
+
+func (Entry) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(
+			entgql.MutationCreate(), 
+			entgql.MutationUpdate(),
+		),
 	}
 }

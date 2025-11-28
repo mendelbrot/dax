@@ -1,4 +1,4 @@
-package dbtools
+package dbl
 
 import (
 	"database/sql"

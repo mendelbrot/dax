@@ -1,16 +1,16 @@
 //go:build ignore
 
-package main
+package scripts
 
 import (
 	"context"
 	"dax/server/ent/migrate"
-	"dax/server/internal/dbtools"
+	"dax/server/lib/dbl"
 	"log"
 )
 
 func main() {
-	client, db := dbtools.Open("postgresql://admin:secret@127.0.0.1/dax")
+	client, db := dbl.Open("postgresql://admin:secret@127.0.0.1/dax")
 	defer client.Close()
 	defer db.Close()
 

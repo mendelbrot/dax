@@ -1,7 +1,7 @@
 package main
 
 import (
-	"dax/server/internal/dbtools"
+	"dax/server/lib/dbl"
 	"log"
 	"net/http"
 
@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	client, _ := dbtools.Open("postgresql://admin:secret@127.0.0.1/dax")
+	client, _ := dbl.Open("postgresql://admin:secret@127.0.0.1/dax")
 
 	// Configure the server and start listening on :8081.
 	srv := handler.NewDefaultServer(NewSchema(client))

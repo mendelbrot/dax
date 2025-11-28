@@ -3,7 +3,9 @@ package schema
 import (
 	"time"
 
+	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 )
@@ -34,5 +36,15 @@ func (Vault) Edges() []ent.Edge {
 		edge.From("users", User.Type).
 			Ref("vaults"),
 		edge.To("entries", Entry.Type),
+	}
+}
+
+func (Vault) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		entgql.QueryField(),
+		entgql.Mutations(
+			entgql.MutationCreate(), 
+			entgql.MutationUpdate(),
+		),
 	}
 }
