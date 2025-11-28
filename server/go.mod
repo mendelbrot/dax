@@ -2,24 +2,28 @@ module dax/server
 
 go 1.24.9
 
-require entgo.io/ent v0.14.5
+require (
+	entgo.io/contrib v0.7.1-0.20251119195149-9ac472ad6841
+	entgo.io/ent v0.14.5
+	github.com/hashicorp/go-multierror v1.1.1
+	github.com/vektah/gqlparser/v2 v2.5.31
+	golang.org/x/sync v0.18.0
+)
 
 require (
-	entgo.io/contrib v0.7.1-0.20251119195149-9ac472ad6841 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
-	github.com/vektah/gqlparser/v2 v2.5.31 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/exp v0.0.0-20221230185412-738e83a70c30 // indirect
-	golang.org/x/sync v0.18.0 // indirect
 	golang.org/x/tools v0.39.0 // indirect
 )
 

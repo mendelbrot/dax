@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"dax/server/lib/types"
 	"time"
 
 	"entgo.io/contrib/entgql"
@@ -15,15 +16,16 @@ type Vault struct {
 	ent.Schema
 }
 
-type VaultSettings map[string]string
-
 // Fields of the Vault.
 func (Vault) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			Unique(),
-		field.JSON("settings", VaultSettings{}).
-			Optional(),
+		field.JSON("settings", types.JSON{}).
+			Optional().
+			Annotations(
+				entgql.Type("JSON"),
+			),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),
@@ -43,7 +45,7 @@ func (Vault) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
 		entgql.Mutations(
-			entgql.MutationCreate(), 
+			entgql.MutationCreate(),
 			entgql.MutationUpdate(),
 		),
 	}

@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"dax/server/lib/types"
 	"time"
 
 	"entgo.io/contrib/entgql"
@@ -15,16 +16,17 @@ type User struct {
 	ent.Schema
 }
 
-type UserSettings map[string]string
-
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("username").
 			Unique(),
 		field.String("hash").Sensitive(),
-		field.JSON("settings", UserSettings{}).
-			Optional(),
+		field.JSON("settings", types.JSON{}).
+			Optional().
+			Annotations(
+				entgql.Type("JSON"),
+			),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),

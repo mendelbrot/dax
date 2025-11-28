@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"dax/server/lib/types"
 	"time"
 
 	"entgo.io/contrib/entgql"
@@ -18,8 +19,6 @@ type Entry struct {
 	ent.Schema
 }
 
-type EntryAttributes map[string]string
-
 // Fields of the Entry.
 func (Entry) Fields() []ent.Field {
 	return []ent.Field{
@@ -27,7 +26,11 @@ func (Entry) Fields() []ent.Field {
 			Optional(),
 		field.Text("body").
 			Optional(),
-		field.JSON("attributes", EntryAttributes{}).Optional(),
+		field.JSON("attributes", types.JSON{}).
+			Optional().
+			Annotations(
+				entgql.Type("JSON"),
+			),
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),
@@ -66,7 +69,7 @@ func (Entry) Annotations() []schema.Annotation {
 	return []schema.Annotation{
 		entgql.QueryField(),
 		entgql.Mutations(
-			entgql.MutationCreate(), 
+			entgql.MutationCreate(),
 			entgql.MutationUpdate(),
 		),
 	}
