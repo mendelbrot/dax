@@ -32,6 +32,8 @@ type Client struct {
 	User *UserClient
 	// Vault is the client for interacting with the Vault builders.
 	Vault *VaultClient
+	// additional fields for node api
+	tables tables
 }
 
 // NewClient creates a new client configured with the given options.

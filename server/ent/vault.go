@@ -40,6 +40,11 @@ type VaultEdges struct {
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [2]bool
+	// totalCount holds the count of the edges above.
+	totalCount [2]map[string]int
+
+	namedUsers   map[string][]*User
+	namedEntries map[string][]*Entry
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -170,6 +175,54 @@ func (_m *Vault) String() string {
 	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedUsers returns the Users named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Vault) NamedUsers(name string) ([]*User, error) {
+	if _m.Edges.namedUsers == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedUsers[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Vault) appendNamedUsers(name string, edges ...*User) {
+	if _m.Edges.namedUsers == nil {
+		_m.Edges.namedUsers = make(map[string][]*User)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedUsers[name] = []*User{}
+	} else {
+		_m.Edges.namedUsers[name] = append(_m.Edges.namedUsers[name], edges...)
+	}
+}
+
+// NamedEntries returns the Entries named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (_m *Vault) NamedEntries(name string) ([]*Entry, error) {
+	if _m.Edges.namedEntries == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := _m.Edges.namedEntries[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (_m *Vault) appendNamedEntries(name string, edges ...*Entry) {
+	if _m.Edges.namedEntries == nil {
+		_m.Edges.namedEntries = make(map[string][]*Entry)
+	}
+	if len(edges) == 0 {
+		_m.Edges.namedEntries[name] = []*Entry{}
+	} else {
+		_m.Edges.namedEntries[name] = append(_m.Edges.namedEntries[name], edges...)
+	}
 }
 
 // Vaults is a parsable slice of Vault.

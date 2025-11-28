@@ -21,12 +21,16 @@ import (
 // VaultQuery is the builder for querying Vault entities.
 type VaultQuery struct {
 	config
-	ctx         *QueryContext
-	order       []vault.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.Vault
-	withUsers   *UserQuery
-	withEntries *EntryQuery
+	ctx              *QueryContext
+	order            []vault.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Vault
+	withUsers        *UserQuery
+	withEntries      *EntryQuery
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*Vault) error
+	withNamedUsers   map[string]*UserQuery
+	withNamedEntries map[string]*EntryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -421,6 +425,9 @@ func (_q *VaultQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vault,
 		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	for i := range hooks {
 		hooks[i](ctx, _spec)
 	}
@@ -441,6 +448,25 @@ func (_q *VaultQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Vault,
 		if err := _q.loadEntries(ctx, query, nodes,
 			func(n *Vault) { n.Edges.Entries = []*Entry{} },
 			func(n *Vault, e *Entry) { n.Edges.Entries = append(n.Edges.Entries, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedUsers {
+		if err := _q.loadUsers(ctx, query, nodes,
+			func(n *Vault) { n.appendNamedUsers(name) },
+			func(n *Vault, e *User) { n.appendNamedUsers(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range _q.withNamedEntries {
+		if err := _q.loadEntries(ctx, query, nodes,
+			func(n *Vault) { n.appendNamedEntries(name) },
+			func(n *Vault, e *Entry) { n.appendNamedEntries(name, e) }); err != nil {
+			return nil, err
+		}
+	}
+	for i := range _q.loadTotal {
+		if err := _q.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
@@ -542,6 +568,9 @@ func (_q *VaultQuery) loadEntries(ctx context.Context, query *EntryQuery, nodes 
 
 func (_q *VaultQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := _q.querySpec()
+	if len(_q.modifiers) > 0 {
+		_spec.Modifiers = _q.modifiers
+	}
 	_spec.Node.Columns = _q.ctx.Fields
 	if len(_q.ctx.Fields) > 0 {
 		_spec.Unique = _q.ctx.Unique != nil && *_q.ctx.Unique
@@ -619,6 +648,34 @@ func (_q *VaultQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedUsers tells the query-builder to eager-load the nodes that are connected to the "users"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *VaultQuery) WithNamedUsers(name string, opts ...func(*UserQuery)) *VaultQuery {
+	query := (&UserClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedUsers == nil {
+		_q.withNamedUsers = make(map[string]*UserQuery)
+	}
+	_q.withNamedUsers[name] = query
+	return _q
+}
+
+// WithNamedEntries tells the query-builder to eager-load the nodes that are connected to the "entries"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (_q *VaultQuery) WithNamedEntries(name string, opts ...func(*EntryQuery)) *VaultQuery {
+	query := (&EntryClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if _q.withNamedEntries == nil {
+		_q.withNamedEntries = make(map[string]*EntryQuery)
+	}
+	_q.withNamedEntries[name] = query
+	return _q
 }
 
 // VaultGroupBy is the group-by builder for Vault entities.
