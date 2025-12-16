@@ -10,18 +10,5 @@ services:
     volumes:
       - vol_pg:/var/lib/postgresql
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@dax.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-    ports:
-      - "8080:80"
-    depends_on:
-      - pg
-    volumes:
-      - vol_pgadmin:/var/lib/pgadmin
-
 volumes:
   vol_pg:
-  vol_pgadmin:
