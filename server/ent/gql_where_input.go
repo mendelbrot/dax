@@ -74,14 +74,16 @@ type EntryWhereInput struct {
 	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
 
 	// "updated_at" field predicates.
-	UpdatedAt      *time.Time  `json:"updatedAt,omitempty"`
-	UpdatedAtNEQ   *time.Time  `json:"updatedAtNEQ,omitempty"`
-	UpdatedAtIn    []time.Time `json:"updatedAtIn,omitempty"`
-	UpdatedAtNotIn []time.Time `json:"updatedAtNotIn,omitempty"`
-	UpdatedAtGT    *time.Time  `json:"updatedAtGT,omitempty"`
-	UpdatedAtGTE   *time.Time  `json:"updatedAtGTE,omitempty"`
-	UpdatedAtLT    *time.Time  `json:"updatedAtLT,omitempty"`
-	UpdatedAtLTE   *time.Time  `json:"updatedAtLTE,omitempty"`
+	UpdatedAt       *time.Time  `json:"updatedAt,omitempty"`
+	UpdatedAtNEQ    *time.Time  `json:"updatedAtNEQ,omitempty"`
+	UpdatedAtIn     []time.Time `json:"updatedAtIn,omitempty"`
+	UpdatedAtNotIn  []time.Time `json:"updatedAtNotIn,omitempty"`
+	UpdatedAtGT     *time.Time  `json:"updatedAtGT,omitempty"`
+	UpdatedAtGTE    *time.Time  `json:"updatedAtGTE,omitempty"`
+	UpdatedAtLT     *time.Time  `json:"updatedAtLT,omitempty"`
+	UpdatedAtLTE    *time.Time  `json:"updatedAtLTE,omitempty"`
+	UpdatedAtIsNil  bool        `json:"updatedAtIsNil,omitempty"`
+	UpdatedAtNotNil bool        `json:"updatedAtNotNil,omitempty"`
 
 	// "vault" edge predicates.
 	HasVault     *bool              `json:"hasVault,omitempty"`
@@ -321,6 +323,12 @@ func (i *EntryWhereInput) P() (predicate.Entry, error) {
 	if i.UpdatedAtLTE != nil {
 		predicates = append(predicates, entry.UpdatedAtLTE(*i.UpdatedAtLTE))
 	}
+	if i.UpdatedAtIsNil {
+		predicates = append(predicates, entry.UpdatedAtIsNil())
+	}
+	if i.UpdatedAtNotNil {
+		predicates = append(predicates, entry.UpdatedAtNotNil())
+	}
 
 	if i.HasVault != nil {
 		p := entry.HasVault()
@@ -408,14 +416,16 @@ type UserWhereInput struct {
 	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
 
 	// "active_at" field predicates.
-	ActiveAt      *time.Time  `json:"activeAt,omitempty"`
-	ActiveAtNEQ   *time.Time  `json:"activeAtNEQ,omitempty"`
-	ActiveAtIn    []time.Time `json:"activeAtIn,omitempty"`
-	ActiveAtNotIn []time.Time `json:"activeAtNotIn,omitempty"`
-	ActiveAtGT    *time.Time  `json:"activeAtGT,omitempty"`
-	ActiveAtGTE   *time.Time  `json:"activeAtGTE,omitempty"`
-	ActiveAtLT    *time.Time  `json:"activeAtLT,omitempty"`
-	ActiveAtLTE   *time.Time  `json:"activeAtLTE,omitempty"`
+	ActiveAt       *time.Time  `json:"activeAt,omitempty"`
+	ActiveAtNEQ    *time.Time  `json:"activeAtNEQ,omitempty"`
+	ActiveAtIn     []time.Time `json:"activeAtIn,omitempty"`
+	ActiveAtNotIn  []time.Time `json:"activeAtNotIn,omitempty"`
+	ActiveAtGT     *time.Time  `json:"activeAtGT,omitempty"`
+	ActiveAtGTE    *time.Time  `json:"activeAtGTE,omitempty"`
+	ActiveAtLT     *time.Time  `json:"activeAtLT,omitempty"`
+	ActiveAtLTE    *time.Time  `json:"activeAtLTE,omitempty"`
+	ActiveAtIsNil  bool        `json:"activeAtIsNil,omitempty"`
+	ActiveAtNotNil bool        `json:"activeAtNotNil,omitempty"`
 
 	// "vaults" edge predicates.
 	HasVaults     *bool              `json:"hasVaults,omitempty"`
@@ -642,6 +652,12 @@ func (i *UserWhereInput) P() (predicate.User, error) {
 	}
 	if i.ActiveAtLTE != nil {
 		predicates = append(predicates, user.ActiveAtLTE(*i.ActiveAtLTE))
+	}
+	if i.ActiveAtIsNil {
+		predicates = append(predicates, user.ActiveAtIsNil())
+	}
+	if i.ActiveAtNotNil {
+		predicates = append(predicates, user.ActiveAtNotNil())
 	}
 
 	if i.HasVaults != nil {

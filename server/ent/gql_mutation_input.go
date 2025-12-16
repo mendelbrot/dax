@@ -13,7 +13,7 @@ type CreateEntryInput struct {
 	Body       *string
 	Attributes types.JSON
 	CreatedAt  *time.Time
-	UpdatedAt  time.Time
+	UpdatedAt  *time.Time
 	VaultID    *int
 }
 
@@ -31,7 +31,9 @@ func (i *CreateEntryInput) Mutate(m *EntryMutation) {
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
-	m.SetUpdatedAt(i.UpdatedAt)
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
 	if v := i.VaultID; v != nil {
 		m.SetVaultID(*v)
 	}
@@ -51,6 +53,7 @@ type UpdateEntryInput struct {
 	Body            *string
 	ClearAttributes bool
 	Attributes      types.JSON
+	ClearUpdatedAt  bool
 	UpdatedAt       *time.Time
 	ClearVault      bool
 	VaultID         *int
@@ -75,6 +78,9 @@ func (i *UpdateEntryInput) Mutate(m *EntryMutation) {
 	}
 	if v := i.Attributes; v != nil {
 		m.SetAttributes(v)
+	}
+	if i.ClearUpdatedAt {
+		m.ClearUpdatedAt()
 	}
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
@@ -105,6 +111,7 @@ type UpdateUserInput struct {
 	Hash           *string
 	ClearSettings  bool
 	Settings       types.JSON
+	ClearActiveAt  bool
 	ActiveAt       *time.Time
 	ClearVaults    bool
 	AddVaultIDs    []int
@@ -124,6 +131,9 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	}
 	if v := i.Settings; v != nil {
 		m.SetSettings(v)
+	}
+	if i.ClearActiveAt {
+		m.ClearActiveAt()
 	}
 	if v := i.ActiveAt; v != nil {
 		m.SetActiveAt(*v)

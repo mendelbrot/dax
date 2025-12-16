@@ -35,7 +35,8 @@ func (Entry) Fields() []ent.Field {
 			Default(time.Now).
 			Immutable(),
 		field.Time("updated_at").
-			UpdateDefault(time.Now),
+			UpdateDefault(time.Now).
+			Optional(),
 	}
 }
 

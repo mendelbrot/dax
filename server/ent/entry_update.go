@@ -88,6 +88,12 @@ func (_u *EntryUpdate) SetUpdatedAt(v time.Time) *EntryUpdate {
 	return _u
 }
 
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (_u *EntryUpdate) ClearUpdatedAt() *EntryUpdate {
+	_u.mutation.ClearUpdatedAt()
+	return _u
+}
+
 // SetVaultID sets the "vault" edge to the Vault entity by ID.
 func (_u *EntryUpdate) SetVaultID(id int) *EntryUpdate {
 	_u.mutation.SetVaultID(id)
@@ -148,7 +154,7 @@ func (_u *EntryUpdate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_u *EntryUpdate) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
+	if _, ok := _u.mutation.UpdatedAt(); !ok && !_u.mutation.UpdatedAtCleared() {
 		v := entry.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
@@ -183,6 +189,9 @@ func (_u *EntryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(entry.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.UpdatedAtCleared() {
+		_spec.ClearField(entry.FieldUpdatedAt, field.TypeTime)
 	}
 	if _u.mutation.VaultCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -291,6 +300,12 @@ func (_u *EntryUpdateOne) SetUpdatedAt(v time.Time) *EntryUpdateOne {
 	return _u
 }
 
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (_u *EntryUpdateOne) ClearUpdatedAt() *EntryUpdateOne {
+	_u.mutation.ClearUpdatedAt()
+	return _u
+}
+
 // SetVaultID sets the "vault" edge to the Vault entity by ID.
 func (_u *EntryUpdateOne) SetVaultID(id int) *EntryUpdateOne {
 	_u.mutation.SetVaultID(id)
@@ -364,7 +379,7 @@ func (_u *EntryUpdateOne) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_u *EntryUpdateOne) defaults() {
-	if _, ok := _u.mutation.UpdatedAt(); !ok {
+	if _, ok := _u.mutation.UpdatedAt(); !ok && !_u.mutation.UpdatedAtCleared() {
 		v := entry.UpdateDefaultUpdatedAt()
 		_u.mutation.SetUpdatedAt(v)
 	}
@@ -416,6 +431,9 @@ func (_u *EntryUpdateOne) sqlSave(ctx context.Context) (_node *Entry, err error)
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(entry.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if _u.mutation.UpdatedAtCleared() {
+		_spec.ClearField(entry.FieldUpdatedAt, field.TypeTime)
 	}
 	if _u.mutation.VaultCleared() {
 		edge := &sqlgraph.EdgeSpec{

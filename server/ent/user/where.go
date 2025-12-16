@@ -295,6 +295,16 @@ func ActiveAtLTE(v time.Time) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldActiveAt, v))
 }
 
+// ActiveAtIsNil applies the IsNil predicate on the "active_at" field.
+func ActiveAtIsNil() predicate.User {
+	return predicate.User(sql.FieldIsNull(FieldActiveAt))
+}
+
+// ActiveAtNotNil applies the NotNil predicate on the "active_at" field.
+func ActiveAtNotNil() predicate.User {
+	return predicate.User(sql.FieldNotNull(FieldActiveAt))
+}
+
 // HasVaults applies the HasEdge predicate on the "vaults" edge.
 func HasVaults() predicate.User {
 	return predicate.User(func(s *sql.Selector) {

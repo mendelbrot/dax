@@ -9,7 +9,7 @@ input CreateEntryInput {
   body: String
   attributes: JSON
   createdAt: Time
-  updatedAt: Time!
+  updatedAt: Time
   vaultID: ID
 }
 """
@@ -34,7 +34,7 @@ type Entry implements Node {
   body: String
   attributes: JSON
   createdAt: Time!
-  updatedAt: Time!
+  updatedAt: Time
   vault: Vault
 }
 """
@@ -114,6 +114,8 @@ input EntryWhereInput {
   updatedAtGTE: Time
   updatedAtLT: Time
   updatedAtLTE: Time
+  updatedAtIsNil: Boolean
+  updatedAtNotNil: Boolean
   """
   vault edge predicates
   """
@@ -204,6 +206,7 @@ input UpdateEntryInput {
   attributes: JSON
   clearAttributes: Boolean
   updatedAt: Time
+  clearUpdatedAt: Boolean
   vaultID: ID
   clearVault: Boolean
 }
@@ -217,6 +220,7 @@ input UpdateUserInput {
   settings: JSON
   clearSettings: Boolean
   activeAt: Time
+  clearActiveAt: Boolean
   addVaultIDs: [ID!]
   removeVaultIDs: [ID!]
   clearVaults: Boolean
@@ -241,7 +245,7 @@ type User implements Node {
   username: String!
   settings: JSON
   createdAt: Time!
-  activeAt: Time!
+  activeAt: Time
   vaults: [Vault!]
 }
 """
@@ -301,6 +305,8 @@ input UserWhereInput {
   activeAtGTE: Time
   activeAtLT: Time
   activeAtLTE: Time
+  activeAtIsNil: Boolean
+  activeAtNotNil: Boolean
   """
   vaults edge predicates
   """

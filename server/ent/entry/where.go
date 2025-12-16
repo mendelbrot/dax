@@ -315,6 +315,16 @@ func UpdatedAtLTE(v time.Time) predicate.Entry {
 	return predicate.Entry(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// UpdatedAtIsNil applies the IsNil predicate on the "updated_at" field.
+func UpdatedAtIsNil() predicate.Entry {
+	return predicate.Entry(sql.FieldIsNull(FieldUpdatedAt))
+}
+
+// UpdatedAtNotNil applies the NotNil predicate on the "updated_at" field.
+func UpdatedAtNotNil() predicate.Entry {
+	return predicate.Entry(sql.FieldNotNull(FieldUpdatedAt))
+}
+
 // HasVault applies the HasEdge predicate on the "vault" edge.
 func HasVault() predicate.Entry {
 	return predicate.Entry(func(s *sql.Selector) {

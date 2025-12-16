@@ -363,9 +363,22 @@ func (m *EntryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err erro
 	return oldValue.UpdatedAt, nil
 }
 
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (m *EntryMutation) ClearUpdatedAt() {
+	m.updated_at = nil
+	m.clearedFields[entry.FieldUpdatedAt] = struct{}{}
+}
+
+// UpdatedAtCleared returns if the "updated_at" field was cleared in this mutation.
+func (m *EntryMutation) UpdatedAtCleared() bool {
+	_, ok := m.clearedFields[entry.FieldUpdatedAt]
+	return ok
+}
+
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *EntryMutation) ResetUpdatedAt() {
 	m.updated_at = nil
+	delete(m.clearedFields, entry.FieldUpdatedAt)
 }
 
 // SetVaultID sets the "vault" edge to the Vault entity by id.
@@ -577,6 +590,9 @@ func (m *EntryMutation) ClearedFields() []string {
 	if m.FieldCleared(entry.FieldAttributes) {
 		fields = append(fields, entry.FieldAttributes)
 	}
+	if m.FieldCleared(entry.FieldUpdatedAt) {
+		fields = append(fields, entry.FieldUpdatedAt)
+	}
 	return fields
 }
 
@@ -599,6 +615,9 @@ func (m *EntryMutation) ClearField(name string) error {
 		return nil
 	case entry.FieldAttributes:
 		m.ClearAttributes()
+		return nil
+	case entry.FieldUpdatedAt:
+		m.ClearUpdatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Entry nullable field %s", name)
@@ -1007,9 +1026,22 @@ func (m *UserMutation) OldActiveAt(ctx context.Context) (v time.Time, err error)
 	return oldValue.ActiveAt, nil
 }
 
+// ClearActiveAt clears the value of the "active_at" field.
+func (m *UserMutation) ClearActiveAt() {
+	m.active_at = nil
+	m.clearedFields[user.FieldActiveAt] = struct{}{}
+}
+
+// ActiveAtCleared returns if the "active_at" field was cleared in this mutation.
+func (m *UserMutation) ActiveAtCleared() bool {
+	_, ok := m.clearedFields[user.FieldActiveAt]
+	return ok
+}
+
 // ResetActiveAt resets all changes to the "active_at" field.
 func (m *UserMutation) ResetActiveAt() {
 	m.active_at = nil
+	delete(m.clearedFields, user.FieldActiveAt)
 }
 
 // AddVaultIDs adds the "vaults" edge to the Vault entity by ids.
@@ -1230,6 +1262,9 @@ func (m *UserMutation) ClearedFields() []string {
 	if m.FieldCleared(user.FieldSettings) {
 		fields = append(fields, user.FieldSettings)
 	}
+	if m.FieldCleared(user.FieldActiveAt) {
+		fields = append(fields, user.FieldActiveAt)
+	}
 	return fields
 }
 
@@ -1246,6 +1281,9 @@ func (m *UserMutation) ClearField(name string) error {
 	switch name {
 	case user.FieldSettings:
 		m.ClearSettings()
+		return nil
+	case user.FieldActiveAt:
+		m.ClearActiveAt()
 		return nil
 	}
 	return fmt.Errorf("unknown User nullable field %s", name)

@@ -16,7 +16,7 @@ var (
 		{Name: "body", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "attributes", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime, Nullable: true},
 		{Name: "vault_entries", Type: field.TypeInt, Nullable: true},
 	}
 	// EntriesTable holds the schema information for the "entries" table.
@@ -69,7 +69,7 @@ var (
 		{Name: "hash", Type: field.TypeString},
 		{Name: "settings", Type: field.TypeJSON, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
-		{Name: "active_at", Type: field.TypeTime},
+		{Name: "active_at", Type: field.TypeTime, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

@@ -84,6 +84,12 @@ func (_u *UserUpdate) SetNillableActiveAt(v *time.Time) *UserUpdate {
 	return _u
 }
 
+// ClearActiveAt clears the value of the "active_at" field.
+func (_u *UserUpdate) ClearActiveAt() *UserUpdate {
+	_u.mutation.ClearActiveAt()
+	return _u
+}
+
 // AddVaultIDs adds the "vaults" edge to the Vault entity by IDs.
 func (_u *UserUpdate) AddVaultIDs(ids ...int) *UserUpdate {
 	_u.mutation.AddVaultIDs(ids...)
@@ -175,6 +181,9 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.ActiveAt(); ok {
 		_spec.SetField(user.FieldActiveAt, field.TypeTime, value)
+	}
+	if _u.mutation.ActiveAtCleared() {
+		_spec.ClearField(user.FieldActiveAt, field.TypeTime)
 	}
 	if _u.mutation.VaultsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -292,6 +301,12 @@ func (_u *UserUpdateOne) SetNillableActiveAt(v *time.Time) *UserUpdateOne {
 	if v != nil {
 		_u.SetActiveAt(*v)
 	}
+	return _u
+}
+
+// ClearActiveAt clears the value of the "active_at" field.
+func (_u *UserUpdateOne) ClearActiveAt() *UserUpdateOne {
+	_u.mutation.ClearActiveAt()
 	return _u
 }
 
@@ -416,6 +431,9 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.ActiveAt(); ok {
 		_spec.SetField(user.FieldActiveAt, field.TypeTime, value)
+	}
+	if _u.mutation.ActiveAtCleared() {
+		_spec.ClearField(user.FieldActiveAt, field.TypeTime)
 	}
 	if _u.mutation.VaultsCleared() {
 		edge := &sqlgraph.EdgeSpec{

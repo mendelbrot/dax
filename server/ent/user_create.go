@@ -60,6 +60,14 @@ func (_c *UserCreate) SetActiveAt(v time.Time) *UserCreate {
 	return _c
 }
 
+// SetNillableActiveAt sets the "active_at" field if the given value is not nil.
+func (_c *UserCreate) SetNillableActiveAt(v *time.Time) *UserCreate {
+	if v != nil {
+		_c.SetActiveAt(*v)
+	}
+	return _c
+}
+
 // AddVaultIDs adds the "vaults" edge to the Vault entity by IDs.
 func (_c *UserCreate) AddVaultIDs(ids ...int) *UserCreate {
 	_c.mutation.AddVaultIDs(ids...)
@@ -126,9 +134,6 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
-	}
-	if _, ok := _c.mutation.ActiveAt(); !ok {
-		return &ValidationError{Name: "active_at", err: errors.New(`ent: missing required field "User.active_at"`)}
 	}
 	return nil
 }

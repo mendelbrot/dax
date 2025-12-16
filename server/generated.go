@@ -693,9 +693,9 @@ func (ec *executionContext) _Entry_updatedAt(ctx context.Context, field graphql.
 			return obj.UpdatedAt, nil
 		},
 		nil,
-		ec.marshalNTime2timeᚐTime,
+		ec.marshalOTime2timeᚐTime,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -1318,9 +1318,9 @@ func (ec *executionContext) _User_activeAt(ctx context.Context, field graphql.Co
 			return obj.ActiveAt, nil
 		},
 		nil,
-		ec.marshalNTime2timeᚐTime,
+		ec.marshalOTime2timeᚐTime,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -3076,7 +3076,7 @@ func (ec *executionContext) unmarshalInputCreateEntryInput(ctx context.Context, 
 			it.CreatedAt = data
 		case "updatedAt":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAt"))
-			data, err := ec.unmarshalNTime2timeᚐTime(ctx, v)
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3158,7 +3158,7 @@ func (ec *executionContext) unmarshalInputEntryWhereInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "heading", "headingNEQ", "headingIn", "headingNotIn", "headingGT", "headingGTE", "headingLT", "headingLTE", "headingContains", "headingHasPrefix", "headingHasSuffix", "headingIsNil", "headingNotNil", "headingEqualFold", "headingContainsFold", "body", "bodyNEQ", "bodyIn", "bodyNotIn", "bodyGT", "bodyGTE", "bodyLT", "bodyLTE", "bodyContains", "bodyHasPrefix", "bodyHasSuffix", "bodyIsNil", "bodyNotNil", "bodyEqualFold", "bodyContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "hasVault", "hasVaultWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "heading", "headingNEQ", "headingIn", "headingNotIn", "headingGT", "headingGTE", "headingLT", "headingLTE", "headingContains", "headingHasPrefix", "headingHasSuffix", "headingIsNil", "headingNotNil", "headingEqualFold", "headingContainsFold", "body", "bodyNEQ", "bodyIn", "bodyNotIn", "bodyGT", "bodyGTE", "bodyLT", "bodyLTE", "bodyContains", "bodyHasPrefix", "bodyHasSuffix", "bodyIsNil", "bodyNotNil", "bodyEqualFold", "bodyContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "updatedAtIsNil", "updatedAtNotNil", "hasVault", "hasVaultWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3564,6 +3564,20 @@ func (ec *executionContext) unmarshalInputEntryWhereInput(ctx context.Context, o
 				return it, err
 			}
 			it.UpdatedAtLTE = data
+		case "updatedAtIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UpdatedAtIsNil = data
+		case "updatedAtNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updatedAtNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.UpdatedAtNotNil = data
 		case "hasVault":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasVault"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -3591,7 +3605,7 @@ func (ec *executionContext) unmarshalInputUpdateEntryInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"heading", "clearHeading", "body", "clearBody", "attributes", "clearAttributes", "updatedAt", "vaultID", "clearVault"}
+	fieldsInOrder := [...]string{"heading", "clearHeading", "body", "clearBody", "attributes", "clearAttributes", "updatedAt", "clearUpdatedAt", "vaultID", "clearVault"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3649,6 +3663,13 @@ func (ec *executionContext) unmarshalInputUpdateEntryInput(ctx context.Context, 
 				return it, err
 			}
 			it.UpdatedAt = data
+		case "clearUpdatedAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearUpdatedAt"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearUpdatedAt = data
 		case "vaultID":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vaultID"))
 			data, err := ec.unmarshalOID2ᚖint(ctx, v)
@@ -3676,7 +3697,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"username", "hash", "settings", "clearSettings", "activeAt", "addVaultIDs", "removeVaultIDs", "clearVaults"}
+	fieldsInOrder := [...]string{"username", "hash", "settings", "clearSettings", "activeAt", "clearActiveAt", "addVaultIDs", "removeVaultIDs", "clearVaults"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3720,6 +3741,13 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 				return it, err
 			}
 			it.ActiveAt = data
+		case "clearActiveAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("clearActiveAt"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ClearActiveAt = data
 		case "addVaultIDs":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("addVaultIDs"))
 			data, err := ec.unmarshalOID2ᚕintᚄ(ctx, v)
@@ -3839,7 +3867,7 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "usernameContains", "usernameHasPrefix", "usernameHasSuffix", "usernameEqualFold", "usernameContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "activeAt", "activeAtNEQ", "activeAtIn", "activeAtNotIn", "activeAtGT", "activeAtGTE", "activeAtLT", "activeAtLTE", "hasVaults", "hasVaultsWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "usernameContains", "usernameHasPrefix", "usernameHasSuffix", "usernameEqualFold", "usernameContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "activeAt", "activeAtNEQ", "activeAtIn", "activeAtNotIn", "activeAtGT", "activeAtGTE", "activeAtLT", "activeAtLTE", "activeAtIsNil", "activeAtNotNil", "hasVaults", "hasVaultsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -4126,6 +4154,20 @@ func (ec *executionContext) unmarshalInputUserWhereInput(ctx context.Context, ob
 				return it, err
 			}
 			it.ActiveAtLTE = data
+		case "activeAtIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeAtIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveAtIsNil = data
+		case "activeAtNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("activeAtNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ActiveAtNotNil = data
 		case "hasVaults":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasVaults"))
 			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -4510,9 +4552,6 @@ func (ec *executionContext) _Entry(ctx context.Context, sel ast.SelectionSet, ob
 			}
 		case "updatedAt":
 			out.Values[i] = ec._Entry_updatedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "vault":
 			field := field
 
@@ -4835,9 +4874,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "activeAt":
 			out.Values[i] = ec._User_activeAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "vaults":
 			field := field
 
@@ -6200,6 +6236,18 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalTime(v)
 	return res
 }
 

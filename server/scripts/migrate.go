@@ -16,14 +16,15 @@ func main() {
 
 	ctx := context.Background()
 
-	_, err := db.
-		ExecContext(ctx, "CREATE EXTENSION IF NOT EXISTS pg_trgm")
-	if err != nil {
+	if _, err := db.ExecContext(
+		ctx,
+		"CREATE EXTENSION IF NOT EXISTS pg_trgm",
+	); err != nil {
 		log.Fatalf("creating pg_trgm extension: %v", err)
 	}
 
 	if err := client.Schema.Create(
-		context.Background(),
+		ctx,
 		migrate.WithGlobalUniqueID(true),
 	); err != nil {
 		log.Fatalf("creating schema resources: %v", err)

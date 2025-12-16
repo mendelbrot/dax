@@ -76,6 +76,14 @@ func (_c *EntryCreate) SetUpdatedAt(v time.Time) *EntryCreate {
 	return _c
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *EntryCreate) SetNillableUpdatedAt(v *time.Time) *EntryCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
 // SetVaultID sets the "vault" edge to the Vault entity by ID.
 func (_c *EntryCreate) SetVaultID(id int) *EntryCreate {
 	_c.mutation.SetVaultID(id)
@@ -140,9 +148,6 @@ func (_c *EntryCreate) defaults() {
 func (_c *EntryCreate) check() error {
 	if _, ok := _c.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Entry.created_at"`)}
-	}
-	if _, ok := _c.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Entry.updated_at"`)}
 	}
 	return nil
 }

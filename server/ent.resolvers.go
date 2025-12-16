@@ -28,17 +28,17 @@ func (r *queryResolver) Nodes(ctx context.Context, ids []int) ([]ent.Noder, erro
 
 // Entries is the resolver for the entries field.
 func (r *queryResolver) Entries(ctx context.Context) ([]*ent.Entry, error) {
-	panic(fmt.Errorf("not implemented: Entries - entries"))
+	return r.client.Entry.Query().All(ctx)
 }
 
 // Users is the resolver for the users field.
 func (r *queryResolver) Users(ctx context.Context) ([]*ent.User, error) {
-	panic(fmt.Errorf("not implemented: Users - users"))
+	return r.client.User.Query().All(ctx)
 }
 
 // Vaults is the resolver for the vaults field.
 func (r *queryResolver) Vaults(ctx context.Context) ([]*ent.Vault, error) {
-	panic(fmt.Errorf("not implemented: Vaults - vaults"))
+	return r.client.Vault.Query().All(ctx)
 }
 
 // Settings is the resolver for the settings field.
