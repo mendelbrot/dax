@@ -11,7 +11,7 @@ class Vault(models.Model):
         related_name="owned_vaults",
     )
     name = models.CharField("vault name", max_length=255)
-    settings = JSONField("vault settings", default=dict)
+    settings = JSONField("vault settings", default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     contributors = models.ManyToManyField(
@@ -19,6 +19,13 @@ class Vault(models.Model):
         through="VaultUser",
         related_name="contributed_vaults",
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "name"], name="unique_vault_name_per_owner"
+            )
+        ]
 
     def __str__(self):
         return self.name
@@ -45,9 +52,9 @@ class Entry(models.Model):
         on_delete=models.CASCADE,
         related_name="entries",
     )
-    heading = models.CharField("entry heading", max_length=255)
-    body = models.TextField("entry body")
-    attributes = JSONField("entry attributes", default=dict)
+    heading = models.CharField("entry heading", max_length=255, blank=True)
+    body = models.TextField("entry body", blank=True)
+    attributes = JSONField("entry attributes", default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
