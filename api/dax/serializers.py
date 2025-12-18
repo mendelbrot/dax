@@ -1,14 +1,13 @@
-from django.contrib.auth.models import Group, User
+from dax.models import Vault, Entry
 from rest_framework import serializers
 
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class VaultSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = User
-        fields = ["url", "id", "username", "email", "groups"]
+        model = Vault
+        fields = ["url", "id", "owner", "name", "settings", "created_at"]
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class EntrySerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
-        model = Group
-        fields = ["url", "id", "name"]
+        model = Entry
+        fields = ["url", "id", "vault", "heading", "body", "attributes", "created_at", "updated_at"]
