@@ -1,0 +1,21 @@
+{
+  "name": "supabase",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "supabase": "supabase",
+    "db:reset": "supabase db reset",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:diff": "supabase db diff",
+    "link": "supabase link --project-ref ablmpkxbubstqudvisbg",
+    "status": "supabase status"
+  },
+  "devDependencies": {
+    "supabase": "^2.72.4"
+  }
+}
