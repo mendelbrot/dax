@@ -1,3 +1,3 @@
 # Dax
 
-a notes app
+### Your personalized information bank
