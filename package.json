@@ -1,5 +1,5 @@
 {
-  "name": "supabase",
+  "name": "dax",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
@@ -7,15 +7,16 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
+    "mermaid": "bash ./notes-dax/mermaid.sh",
     "supabase": "supabase",
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
     "db:pull": "supabase db pull",
     "db:diff": "supabase db diff",
-    "link": "supabase link --project-ref ablmpkxbubstqudvisbg",
     "status": "supabase status"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.12.0",
     "supabase": "^2.72.4"
   }
 }
