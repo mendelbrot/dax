@@ -1,0 +1,57 @@
+graph TB
+    subgraph "App Entry Point"
+        Main[main function]
+        Main --> InitSupabase[Initialize Supabase]
+        InitSupabase --> LoadEnv[Load .env file]
+        LoadEnv --> MyApp[MyApp Widget]
+    end
+    
+    subgraph "App Structure"
+        MyApp --> Provider[ChangeNotifierProvider]
+        Provider --> AuthProvider[AuthProvider]
+        Provider --> MaterialApp[MaterialApp]
+        MaterialApp --> AuthWrapper[AuthWrapper]
+    end
+    
+    subgraph "Authentication Logic"
+        AuthProvider --> SupabaseService[SupabaseService]
+        AuthProvider --> AuthState[Auth State Management]
+        AuthState --> SendOTP[sendOTP method]
+        AuthState --> VerifyOTP[verifyOTP method]
+        AuthState --> SignOut[signOut method]
+    end
+    
+    subgraph "Supabase Integration"
+        SupabaseService --> SupabaseClient[Supabase Client]
+        SupabaseClient --> AuthAPI[Auth API]
+        SupabaseClient --> AuthStream[Auth State Stream]
+    end
+    
+    subgraph "UI Components"
+        AuthWrapper --> CheckAuth{User Authenticated?}
+        CheckAuth -->|No| SignInPage[SignInPage]
+        CheckAuth -->|Yes| HomePage[HomePage]
+        
+        SignInPage --> EmailField[Email Input Field]
+        SignInPage --> SendButton[Send Code Button]
+        SignInPage --> OTPField[OTP Input Field]
+        SignInPage --> VerifyButton[Verify Code Button]
+        
+        HomePage --> WelcomeText[Hello email! Text]
+        HomePage --> SignOutButton[Sign Out Button]
+    end
+    
+    subgraph "State Flow"
+        SignInPage -.->|Reads/Watches| AuthProvider
+        HomePage -.->|Reads/Watches| AuthProvider
+        SendButton -.->|Calls| SendOTP
+        VerifyButton -.->|Calls| VerifyOTP
+        SignOutButton -.->|Calls| SignOut
+    end
+    
+    style Main fill:#e1f5ff
+    style MyApp fill:#e1f5ff
+    style AuthProvider fill:#fff4e1
+    style SupabaseService fill:#ffe1f5
+    style SignInPage fill:#e1ffe1
+    style HomePage fill:#e1ffe1

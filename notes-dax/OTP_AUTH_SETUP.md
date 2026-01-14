@@ -51,6 +51,10 @@ To ensure Supabase sends OTP codes instead of magic links, you must configure th
 5. User clicks "Verify Code"
 6. Upon successful verification, user is authenticated and sees the home screen
 
+### State Diagram
+
+![Sign-In Flow State Diagram](assets/images/sign-in-flow-state.svg)
+
 ## Testing
 
 - Test with invited user email addresses (users must exist in Supabase)
@@ -65,3 +69,7 @@ The Flutter app uses:
 - `verifyOTP()` - Verifies the entered code and authenticates the user
 
 See `client-flutter/lib/providers/auth_provider.dart` for the implementation.
+
+### Component Architecture
+
+![Flutter App Components](assets/images/flutter-app-components.svg)

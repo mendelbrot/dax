@@ -31,7 +31,7 @@ When creating plans:
 - Update plan status to `in_progress` when starting implementation, `completed` when done
 - Do NOT use the mcp_create_plan tool (it saves to home directory); create plan files directly in workspace
 
-Mermaid diagrams go in the /notes-dax/assets/diagrams folder. Mermaid diagram png images are generated from these using /notes-dax/mermaid.sh and go in the /notes-dax/assets/images folder. These images are then referenced in the documentation markdown files.
+Mermaid diagrams go in the /notes-dax/assets/diagrams folder. Mermaid diagram svg images are generated from these using `npm run mermaid` (which runs /notes-dax/mermaid.sh) and go in the /notes-dax/assets/images folder. These images are then referenced in the documentation markdown files. Always run `npm run mermaid` after creating or updating mermaid diagram files.
 
 # Database
 

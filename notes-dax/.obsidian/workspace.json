@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "cursor-rules.md",
+                "file": "OTP_AUTH_SETUP.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "cursor-rules"
+              "title": "OTP_AUTH_SETUP"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "cursor-rules.md",
+                "file": "OTP_AUTH_SETUP.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for cursor-rules"
+              "title": "Backlinks for OTP_AUTH_SETUP"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "cursor-rules.md",
+                "file": "OTP_AUTH_SETUP.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from cursor-rules"
+              "title": "Outgoing links from OTP_AUTH_SETUP"
             }
           },
           {
@@ -156,13 +156,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "cursor-rules.md",
+                "file": "OTP_AUTH_SETUP.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of cursor-rules"
+              "title": "Outline of OTP_AUTH_SETUP"
             }
           }
         ]
@@ -185,9 +185,18 @@
   },
   "active": "865ee6d24214b60a",
   "lastOpenFiles": [
+    "assets/images/sign-in-flow-state.png",
     "OTP_AUTH_SETUP.md",
-    "assets/images/email-process.png",
+    "GITHUB_AUTH_SETUP.md",
+    "INDEXING_PLAN.md",
     "cursor-vibe-dev-loop.md",
+    "cursor-rules.md",
+    "assets/images/flutter-app-components.svg",
+    "assets/images/sign-in-flow-state.svg",
+    "assets/images/flutter-app-components.png",
+    "assets/diagrams/flutter-app-components.mmd",
+    "assets/diagrams/sign-in-flow-state.mmd",
+    "assets/images/email-process.png",
     "assets/images",
     "assets/diagrams/images",
     "assets/diagrams/email-process.mmd",
@@ -196,11 +205,7 @@
     "diagrams/email-process.mmd",
     "images",
     "diagrams",
-    "mermaid.sh",
-    "cursor-rules.md",
-    "GITHUB_AUTH_SETUP.md",
     "vibe-dev-loop.md",
-    "INDEXING_PLAN.md",
     "Welcome.md",
     "README.md"
   ]
