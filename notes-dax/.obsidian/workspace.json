@@ -185,6 +185,11 @@
   },
   "active": "865ee6d24214b60a",
   "lastOpenFiles": [
+    "assets/wireframes/home.png",
+    "assets/wireframes/WIREFRAME_TEMPLATE.png",
+    "assets/wireframes/home.svg",
+    "assets/wireframes/WIREFRAME_TEMPLATE.svg",
+    "assets/wireframes",
     "assets/images/sign-in-flow-state.png",
     "OTP_AUTH_SETUP.md",
     "GITHUB_AUTH_SETUP.md",
@@ -204,7 +209,6 @@
     "assets",
     "diagrams/email-process.mmd",
     "images",
-    "diagrams",
     "vibe-dev-loop.md",
     "Welcome.md",
     "README.md"

@@ -33,11 +33,19 @@ When creating plans:
 
 Mermaid diagrams go in the /notes-dax/assets/diagrams folder. Mermaid diagram svg images are generated from these using `npm run mermaid` (which runs /notes-dax/mermaid.sh) and go in the /notes-dax/assets/images folder. These images are then referenced in the documentation markdown files. Always run `npm run mermaid` after creating or updating mermaid diagram files.
 
+# Data Model
+
+User notes are stored in Vaults. Each Valut is a collection of Entrys. Each Entry has a heading and a body.
+
 # Database
 
 The development strategy for the database is with declarative schemas. Schemas are in /supabase/schemas. From the declarative schemas, a diff is generated with the supabase cli, to create migration files in /supabase/migrations.
 
-To generate a migration from schema changes, use: `npm run db:diff migration-name`
+**IMPORTANT: When making database changes:**
+- **ALWAYS edit the schema files in `/supabase/schemas/`** (e.g., `02_tables.sql`, `06_rls_policies.sql`)
+- **NEVER create migration files directly** - migrations are auto-generated from schema changes
+- After editing schema files, the user will run `npm run db:diff migration-name` to generate the migration
+- Schema files are the source of truth - edit them to make any database changes
 
 # Testing
 
@@ -48,4 +56,15 @@ Do not add tests. This is a deliberate choice for this project and may be recons
 I always prefer configuration in code. For example, the Supabase config is in /supabase/config.toml.
 
 For the Frontend UI design, my style preference is minimalist and clean.
+
+I always prefer configuration in code. for example, the Supabase config is in /supabase/config.yaml.
+
+For the Frontend UI design, my style preference is minimalist and clean.
+
+I prefer to use the standard flutter material design widgets.
+
+# UI Wireframes
+
+UI wireframes are in /notes-dax/assets/wireframes. The .png files are for you to view. (I edit the .svg files)
+The wireframes are very basic, and I often use letter charactears as placeholders for icons.
 
