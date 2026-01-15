@@ -18,15 +18,18 @@ class AuthProvider extends ChangeNotifier {
     _listenToAuthChanges();
   }
 
+  static User? get currentUser => SupabaseService.client.auth.currentUser;
+
+  static Stream<AuthState> get authStateChanges => SupabaseService.client.auth.onAuthStateChange;
+
   void _checkAuthState() {
-    final user = SupabaseService.currentUser;
-    _isAuthenticated = user != null;
-    _userEmail = user?.email;
+    _isAuthenticated = currentUser != null;
+    _userEmail = currentUser?.email;
     notifyListeners();
   }
 
   void _listenToAuthChanges() {
-    SupabaseService.authStateChanges.listen((data) {
+    authStateChanges.listen((data) {
       final user = data.session?.user;
       _isAuthenticated = user != null;
       _userEmail = user?.email;
@@ -41,11 +44,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Don't provide emailRedirectTo to ensure OTP code is sent instead of magic link
-      // If emailRedirectTo is provided (even from dashboard defaults), Supabase sends magic links
-      await SupabaseService.client.auth.signInWithOtp(
-        email: email.trim(),
-      );
+      await SupabaseService.client.auth.signInWithOtp(email: email.trim());
       _errorMessage = null;
     } catch (e) {
       _errorMessage = _getErrorMessage(e);
@@ -102,10 +101,6 @@ class AuthProvider extends ChangeNotifier {
 
   String _getErrorMessage(dynamic error) {
     if (error is AuthException) {
-      if (error.message.contains('User not found') ||
-          error.message.contains('Invalid login credentials')) {
-        return 'This email is not registered. Please contact support for access.';
-      }
       return error.message;
     }
     return error.toString();

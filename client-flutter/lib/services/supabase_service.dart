@@ -20,8 +20,4 @@ class SupabaseService {
     }
     return _client!;
   }
-
-  static User? get currentUser => client.auth.currentUser;
-
-  static Stream<AuthState> get authStateChanges => client.auth.onAuthStateChange;
 }
