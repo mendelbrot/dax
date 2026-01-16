@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../models/vault.dart';
 import '../services/data_service.dart';
@@ -221,7 +222,7 @@ class _HomePageState extends State<HomePage> {
                     return ListTile(
                       title: Text(vault.name),
                       onTap: () {
-                        // Navigation logic will be added later
+                        context.go('/vault/${vault.id}');
                       },
                     );
                   },
