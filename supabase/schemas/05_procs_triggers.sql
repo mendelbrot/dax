@@ -32,11 +32,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger for dax_vault: set created_at on INSERT
+-- Function to handle created_at and owner_id for dax_vault on INSERT
+CREATE OR REPLACE FUNCTION public.handle_vault_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.created_at IS NULL THEN
+        NEW.created_at = CURRENT_TIMESTAMP;
+    END IF;
+    -- Always set owner_id to the authenticated user's ID (ignores any value from frontend)
+    NEW.owner_id = auth.uid();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for dax_vault: set created_at and owner_id on INSERT
 CREATE TRIGGER set_dax_vault_timestamp
     BEFORE INSERT ON public.dax_vault
     FOR EACH ROW
-    EXECUTE FUNCTION public.handle_created_at();
+    EXECUTE FUNCTION public.handle_vault_insert();
 
 -- Trigger for dax_entry: set created_at and updated_at on INSERT
 CREATE TRIGGER set_dax_entry_timestamps

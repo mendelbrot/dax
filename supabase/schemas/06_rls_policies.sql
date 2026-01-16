@@ -10,7 +10,8 @@ CREATE POLICY "Users can only read own vaults"
     TO authenticated
     USING (owner_id = auth.uid());
 
--- Users can only insert vaults with themselves as owner
+-- Users can only insert vaults (owner_id is set automatically by trigger)
+-- The WITH CHECK verifies the trigger set it correctly
 CREATE POLICY "Users can only insert own vaults"
     ON public.dax_vault
     FOR INSERT
