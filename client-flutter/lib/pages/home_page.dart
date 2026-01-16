@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../models/vault.dart';
+import '../services/data_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,14 +12,90 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Use a key to force FutureBuilder to rebuild when vaults are created
+  int _refreshKey = 0;
+
+  Future<List<Vault>> _fetchVaults() async {
+    return await Data.vaults.list();
+  }
+
+  void _showCreateVaultDialog() {
+    final nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Create New Vault'),
+          content: TextField(
+            controller: nameController,
+            decoration: const InputDecoration(
+              labelText: 'Vault Name',
+              hintText: 'Enter vault name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+            onSubmitted: (_) => _createVault(nameController.text, context),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => _createVault(nameController.text, context),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _createVault(String name, BuildContext dialogContext) async {
+    if (name.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vault name cannot be empty')),
+      );
+      return;
+    }
+
+    try {
+      await Data.vaults.create(name.trim(), {});
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+      // Refresh the vault list by incrementing the key
+      setState(() {
+        _refreshKey++;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vault created successfully')),
+        );
+      }
+    } catch (e) {
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating vault: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-
-    var vaults = [{'name': 'tech'}, {'name': 'personal'}, {'name': 'random'}];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
+        leading: IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: _showCreateVaultDialog,
+          tooltip: 'Create New Vault',
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -28,9 +106,93 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: ListView(
-        children: [for (var vault in vaults) Text(vault['name']!)],
-      )
+      body: FutureBuilder<List<Vault>>(
+        key: ValueKey(_refreshKey),
+        future: _fetchVaults(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading vaults',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    snapshot.error.toString(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _refreshKey++;
+                      });
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.folder_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No vaults yet',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap the + icon to create your first vault',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final vaults = snapshot.data!;
+
+          return ListView.builder(
+            itemCount: vaults.length,
+            itemBuilder: (context, index) {
+              final vault = vaults[index];
+              return ListTile(
+                title: Text(vault.name),
+                onTap: () {
+                  // Navigation logic will be added later
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
