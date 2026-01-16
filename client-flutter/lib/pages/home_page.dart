@@ -26,12 +26,13 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Create New Vault'),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.zero,
+          ),
           content: TextField(
             controller: nameController,
             decoration: const InputDecoration(
               labelText: 'Vault Name',
-              hintText: 'Enter vault name',
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -71,7 +72,7 @@ class _HomePageState extends State<HomePage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Vault created successfully')),
+          const SnackBar(content: Text('Vault created')),
         );
       }
     } catch (e) {
@@ -90,7 +91,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
         leading: IconButton(
           icon: const Icon(Icons.add),
           onPressed: _showCreateVaultDialog,
@@ -110,86 +110,124 @@ class _HomePageState extends State<HomePage> {
         key: ValueKey(_refreshKey),
         future: _fetchVaults(),
         builder: (context, snapshot) {
+          const topDivider = Divider(
+            thickness: 2,
+            height: 2,
+          );
+
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return Column(
+              children: [
+                topDivider,
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              ],
             );
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.red,
+            return Column(
+              children: [
+                topDivider,
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading vaults',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          snapshot.error.toString(),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _refreshKey++;
+                            });
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading vaults',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _refreshKey++;
-                      });
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ),
+                ),
+              ],
             );
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.folder_outlined,
-                    size: 64,
-                    color: Colors.grey,
+            return Column(
+              children: [
+                topDivider,
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.folder_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No vaults yet',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No vaults yet',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the + icon to create your first vault',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
+                ),
+              ],
             );
           }
 
           final vaults = snapshot.data!;
 
-          return ListView.builder(
-            itemCount: vaults.length,
-            itemBuilder: (context, index) {
-              final vault = vaults[index];
-              return ListTile(
-                title: Text(vault.name),
-                onTap: () {
-                  // Navigation logic will be added later
-                },
-              );
-            },
+          return Column(
+            children: [
+              topDivider,
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: vaults.length * 2,
+                  itemBuilder: (context, index) {
+                    // Every odd index is a divider, even indices are vaults
+                    if (index.isOdd) {
+                      return const Divider(
+                        thickness: 2,
+                        height: 2,
+                      );
+                    }
+                    // Even indices are vaults
+                    final vaultIndex = index ~/ 2;
+                    final vault = vaults[vaultIndex];
+                    return ListTile(
+                      title: Text(vault.name),
+                      onTap: () {
+                        // Navigation logic will be added later
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
