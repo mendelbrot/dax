@@ -1,8 +1,9 @@
 import 'package:dax/models/entry.dart';
+import 'package:dax/models/vault.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
+import '../services/auth_provider.dart';
 import '../services/data_service.dart';
 
 class VaultPage extends StatefulWidget {
@@ -15,11 +16,15 @@ class VaultPage extends StatefulWidget {
 }
 
 class _VaultPageState extends State<VaultPage> {
-  // Use a key to force FutureBuilder to rebuild when vaults are created
   int _refreshKey = 0;
 
-  Future<List<Entry>> _fetchEntries() async {
-    return await Data.entries.list(EntryQueryOptions(vaultId: widget.vaultId));
+  Future<({Vault vault, List<Entry> entries})> _fetchPageData() async {
+    final vaultFuture = Data.vaults.get(widget.vaultId);
+    final entriesFuture = Data.entries.list(
+      EntryQueryOptions(vaultId: widget.vaultId),
+    );
+
+    return (vault: await vaultFuture, entries: await entriesFuture);
   }
 
   void _showCreateEntryDialog() {
@@ -55,13 +60,13 @@ class _VaultPageState extends State<VaultPage> {
   }
 
   Future<void> _createEntry(String name, BuildContext dialogContext) async {
-
     try {
-      await Data.entries.create(Entry(heading: name.trim(), vaultId: widget.vaultId));
+      await Data.entries.create(
+        Entry(heading: name.trim(), vaultId: widget.vaultId),
+      );
       if (dialogContext.mounted) {
         Navigator.of(dialogContext).pop();
       }
-      // Refresh the vault list by incrementing the key
       setState(() {
         _refreshKey++;
       });
@@ -84,9 +89,64 @@ class _VaultPageState extends State<VaultPage> {
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      key: ValueKey(_refreshKey),
+      future: _fetchPageData(),
+      builder: (context, snapshot) {
+        // --- LOADING STATE ---
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // --- ERROR STATE ---
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('Error')),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error loading data',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    snapshot.error.toString(),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => setState(() => _refreshKey++),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // --- SUCCESS STATE ---
+        final data = snapshot.data!;
+        return _buildPageContent(data.vault, data.entries);
+      },
+    );
+  }
+
+  /// Helper method to build the main content once data is loaded
+  Widget _buildPageContent(Vault vault, List<Entry> entries) {
+    const topDivider = Divider(thickness: 2, height: 2);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Vault: ${widget.vaultId}'),
+        title: Text(vault.name ?? widget.vaultId),
         leading: IconButton(
           icon: const Icon(Icons.add),
           onPressed: _showCreateEntryDialog,
@@ -102,123 +162,50 @@ class _VaultPageState extends State<VaultPage> {
           ),
         ],
       ),
-      body: FutureBuilder<List<Entry>>(
-        key: ValueKey(_refreshKey),
-        future: _fetchEntries(),
-        builder: (context, snapshot) {
-          const topDivider = Divider(thickness: 2, height: 2);
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Column(
-              children: [
-                topDivider,
-                const Expanded(
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              ],
-            );
-          }
-
-          if (snapshot.hasError) {
-            return Column(
-              children: [
-                topDivider,
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading vaults',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          snapshot.error.toString(),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _refreshKey++;
-                            });
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
-                        ),
-                      ],
-                    ),
+      body: entries.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.folder_outlined,
+                    size: 64,
+                    color: Colors.grey,
                   ),
-                ),
-              ],
-            );
-          }
-
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Column(
-              children: [
-                topDivider,
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.folder_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No entries yet',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No entries yet',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                ),
-              ],
-            );
-          }
-
-          final entries = snapshot.data!;
-
-          return Column(
-            children: [
-              topDivider,
-              Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.zero,
-                  itemCount: entries.length * 2,
-                  itemBuilder: (context, index) {
-                    // Every odd index is a divider, even indices are vaults
-                    if (index.isOdd) {
-                      return const Divider(thickness: 2, height: 2);
-                    }
-                    // Even indices are vaults
-                    final vaultIndex = index ~/ 2;
-                    final entry = entries[vaultIndex];
-                    return ListTile(
-                      title: Text(entry.heading ?? ''),
-                      onTap: () {
-                        context.go('/vault/${widget.vaultId}/entry/${entry.id}');
-                      },
-                    );
-                  },
-                ),
+                ],
               ),
-            ],
-          );
-        },
-      ),
+            )
+          : Column(
+              children: [
+                topDivider,
+                Expanded(
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: entries.length * 2,
+                    itemBuilder: (context, index) {
+                      if (index.isOdd) {
+                        return const Divider(thickness: 2, height: 2);
+                      }
+                      final vaultIndex = index ~/ 2;
+                      final entry = entries[vaultIndex];
+                      return ListTile(
+                        title: Text(entry.heading ?? ''),
+                        onTap: () {
+                          context.go(
+                            '/vault/${widget.vaultId}/entry/${entry.id}',
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

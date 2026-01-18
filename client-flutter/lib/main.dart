@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import 'providers/auth_provider.dart';
-import 'router/app_router.dart';
+import 'services/auth_provider.dart';
+import 'services/app_router.dart';
 import 'services/supabase_service.dart';
 
 void main() async {

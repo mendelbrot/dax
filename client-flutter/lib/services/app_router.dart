@@ -3,7 +3,7 @@ import '../pages/sign_in_page.dart';
 import '../pages/home_page.dart';
 import '../pages/vault_page.dart';
 import '../pages/entry_page.dart';
-import '../providers/auth_provider.dart';
+import 'auth_provider.dart';
 
 GoRouter createAppRouter(AuthProvider authProvider) {
   return GoRouter(
