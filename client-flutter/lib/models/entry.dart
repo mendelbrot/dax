@@ -1,47 +1,51 @@
 class Entry {
   final String? id;
-  final String heading;
-  final String body;
-  final Map<String, dynamic> attributes;
+  final String? heading;
+  final String? body;
+  final Map<String, dynamic>? attributes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String vaultId;
+  final String? vaultId;
 
   Entry({
     this.id,
-    required this.heading,
-    required this.body,
-    required this.attributes,
+    this.heading,
+    this.body,
+    this.attributes,
     this.createdAt,
     this.updatedAt,
-    required this.vaultId,
+    this.vaultId,
   });
 
-  // Factory constructor to map JSON to Object
-  factory Entry.fromJson(Map<String, dynamic> json) {
+  factory Entry.fromMap(Map<String, dynamic> map) {
     return Entry(
-      id: json['id']?.toString(),
-      heading: json['heading'] ?? '',
-      body: json['body'] ?? '',
-      attributes: json['attributes'] as Map<String, dynamic>? ?? {},
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      updatedAt: DateTime.tryParse(json['updated_at'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      vaultId: json['vault_id'].toString(),
+      id: map['id']?.toString(),
+      heading: map['heading'] as String?,
+      body: map['body'] as String?,
+      attributes: map['attributes'] != null
+          ? Map<String, dynamic>.from(map['attributes'])
+          : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.tryParse(map['updated_at'])
+          : null,
+      vaultId: map['vault_id']?.toString(),
     );
   }
 
-  // Convert to JSON for Supabase SDK
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
-      'heading': heading,
-      'body': body,
-      'attributes': attributes,
-      'vault_id': vaultId,
-    };
-    return json;
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
+
+    if (heading != null) map['heading'] = heading;
+    if (body != null) map['body'] = body;
+    if (attributes != null) map['attributes'] = attributes;
+    if (vaultId != null) map['vault_id'] = vaultId;
+
+    return map;
   }
 
-  // Create a copy of this Entry with some fields changed
   Entry copyWith({
     String? id,
     String? heading,

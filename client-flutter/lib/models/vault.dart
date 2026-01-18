@@ -1,39 +1,35 @@
 class Vault {
   final String? id;
-  final String name;
-  final Map<String, dynamic> settings;
+  final String? name;
+  final Map<String, dynamic>? settings;
   final DateTime? createdAt;
-  final String? ownerId; // Set by database, always exists when reading from DB
+  final String? ownerId;
 
-  Vault({
-    this.id,
-    required this.name,
-    required this.settings,
-    this.createdAt,
-    this.ownerId, // Optional - not required when creating, always set by DB
-  });
+  Vault({this.id, this.name, this.settings, this.createdAt, this.ownerId});
 
-  // Factory constructor to map JSON to Object
-  factory Vault.fromJson(Map<String, dynamic> json) {
+  factory Vault.fromMap(Map<String, dynamic> map) {
     return Vault(
-      id: json['id']?.toString(),
-      name: json['name'] ?? '',
-      settings: json['settings'] as Map<String, dynamic>? ?? {},
-      createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
-      ownerId: json['owner_id']?.toString(),
+      id: map['id']?.toString(),
+      name: map['name'] as String?,
+      settings: map['settings'] != null
+          ? Map<String, dynamic>.from(map['settings'])
+          : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
+      ownerId: map['owner_id']?.toString(),
     );
   }
 
-  // Convert to JSON for Supabase SDK
-  Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
-      'name': name,
-      'settings': settings,
-    };
-    return json;
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
+
+    if (name != null) map['name'] = name;
+    if (settings != null) map['settings'] = settings;
+
+    return map;
   }
 
-  // Create a copy of this Vault with some fields changed
   Vault copyWith({
     String? id,
     String? name,

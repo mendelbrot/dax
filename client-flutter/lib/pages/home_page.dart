@@ -220,7 +220,7 @@ class _HomePageState extends State<HomePage> {
                     final vaultIndex = index ~/ 2;
                     final vault = vaults[vaultIndex];
                     return ListTile(
-                      title: Text(vault.name),
+                      title: Text(vault.name ?? vault.id.toString()),
                       onTap: () {
                         context.go('/vault/${vault.id}');
                       },
