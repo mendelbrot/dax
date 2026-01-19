@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dax/models/entry.dart';
 import 'package:flutter/material.dart';
 import '../services/data_service.dart';
+import 'package:flutter/services.dart';
 
 class EntryPage extends StatefulWidget {
   final String vaultId;
@@ -45,7 +46,7 @@ class _EntryPageState extends State<EntryPage> {
           _bodyController.text = entry.body ?? '';
           _isLoading = false;
         });
-        
+
         // Add listeners after initial value is set to avoid triggering auto-save on load
         _headingController.addListener(_onTextChanged);
         _bodyController.addListener(_onTextChanged);
@@ -74,11 +75,54 @@ class _EntryPageState extends State<EntryPage> {
       );
       await Data.entries.update(entry);
     } catch (e) {
-      // Silently handle error or show a snackbar?
-      // For a minimal editor, maybe a subtle indicator is better, 
-      // but for now keeping it simple as per requirements.
-      debugPrint('Error saving entry: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving entry: $e')));
+      }
     }
+  }
+
+  Future<void> _deleteEntry() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Entry'),
+        content: const Text('Are you sure you want to delete this entry?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await Data.entries.delete(widget.entryId);
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error deleting entry: $e')));
+        }
+      }
+    }
+  }
+
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: _bodyController.text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Content copied to clipboard')),
+    );
   }
 
   @override
@@ -99,7 +143,10 @@ class _EntryPageState extends State<EntryPage> {
             children: [
               const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Error loading entry', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                'Error loading entry',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               Text(_error!),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -121,14 +168,29 @@ class _EntryPageState extends State<EntryPage> {
 
     return Scaffold(
       appBar: AppBar(
-        // Empty title as heading is now in the body
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _deleteEntry,
+            tooltip: 'Delete',
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: _copyToClipboard,
+            tooltip: 'Copy',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
           // Border between App Bar and Heading
           const Divider(height: 1, thickness: 1),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: TextField(
               controller: _headingController,
               decoration: const InputDecoration(
@@ -143,7 +205,10 @@ class _EntryPageState extends State<EntryPage> {
           const Divider(height: 1, thickness: 1),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: TextField(
                 controller: _bodyController,
                 decoration: const InputDecoration(
