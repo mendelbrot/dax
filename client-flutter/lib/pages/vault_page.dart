@@ -72,11 +72,12 @@ class _VaultPageState extends State<VaultPage> {
         });
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _errorMessage = e.toString();
           _isLoading = false;
         });
+      }
     }
   }
 
@@ -171,6 +172,8 @@ class _VaultPageState extends State<VaultPage> {
               Expanded(
                 child: TextField(
                   controller: _searchController,
+                  autofocus: true,
+                  onSubmitted: (_) => _createEntry(),
                   decoration: const InputDecoration(
                     hintText: 'Search or create...',
                     border: OutlineInputBorder(),
