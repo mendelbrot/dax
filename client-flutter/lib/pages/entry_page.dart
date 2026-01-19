@@ -19,6 +19,7 @@ class _EntryPageState extends State<EntryPage> {
   late TextEditingController _bodyController;
   Timer? _debounce;
   bool _isLoading = true;
+  bool _isSaving = false;
   String? _error;
 
   @override
@@ -31,7 +32,10 @@ class _EntryPageState extends State<EntryPage> {
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+      _saveEntry();
+    }
     _headingController.dispose();
     _bodyController.dispose();
     super.dispose();
@@ -63,6 +67,11 @@ class _EntryPageState extends State<EntryPage> {
 
   void _onTextChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+    if (mounted) {
+      setState(() {
+        _isSaving = true;
+      });
+    }
     _debounce = Timer(const Duration(milliseconds: 1000), _saveEntry);
   }
 
@@ -74,6 +83,11 @@ class _EntryPageState extends State<EntryPage> {
         body: _bodyController.text,
       );
       await Data.entries.update(entry);
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -104,6 +118,12 @@ class _EntryPageState extends State<EntryPage> {
 
     if (confirmed == true) {
       try {
+        _debounce?.cancel();
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+        }
         await Data.entries.delete(widget.entryId);
         if (mounted) {
           Navigator.pop(context);
@@ -123,6 +143,14 @@ class _EntryPageState extends State<EntryPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Content copied to clipboard')),
     );
+  }
+
+  Future<void> _handleBackNavigation() async {
+    _debounce?.cancel();
+    await _saveEntry();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -166,63 +194,75 @@ class _EntryPageState extends State<EntryPage> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _deleteEntry,
-            tooltip: 'Delete',
-          ),
-          IconButton(
-            icon: const Icon(Icons.copy),
-            onPressed: _copyToClipboard,
-            tooltip: 'Copy',
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Border between App Bar and Heading
-          const Divider(height: 1, thickness: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
-            child: TextField(
-              controller: _headingController,
-              decoration: const InputDecoration(
-                hintText: 'Heading',
-                border: InputBorder.none,
+    return PopScope(
+      canPop: !_isSaving,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBackNavigation();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            if (_isSaving)
+              const Padding(
+                padding: EdgeInsets.only(right: 16.0),
+                child: Icon(Icons.cloud_upload, size: 24, color: Colors.grey),
               ),
-              style: Theme.of(context).textTheme.headlineSmall,
-              maxLines: 1,
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _deleteEntry,
+              tooltip: 'Delete',
             ),
-          ),
-          // Border between Heading and Body
-          const Divider(height: 1, thickness: 1),
-          Expanded(
-            child: Padding(
+            IconButton(
+              icon: const Icon(Icons.copy),
+              onPressed: _copyToClipboard,
+              tooltip: 'Copy',
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Border between App Bar and Heading
+            const Divider(height: 1, thickness: 1),
+            Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 16.0,
                 vertical: 8.0,
               ),
               child: TextField(
-                controller: _bodyController,
+                controller: _headingController,
                 decoration: const InputDecoration(
-                  hintText: 'Start writing...',
+                  hintText: 'Heading',
                   border: InputBorder.none,
                 ),
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
+                style: Theme.of(context).textTheme.headlineSmall,
+                maxLines: 1,
               ),
             ),
-          ),
-        ],
+            // Border between Heading and Body
+            const Divider(height: 1, thickness: 1),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                child: TextField(
+                  controller: _bodyController,
+                  decoration: const InputDecoration(
+                    hintText: 'Start writing...',
+                    border: InputBorder.none,
+                  ),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: null,
+                  expands: true,
+                  textAlignVertical: TextAlignVertical.top,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
