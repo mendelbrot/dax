@@ -28,6 +28,9 @@ jobs:
     - name: Enable Linux desktop
       run: flutter config --enable-linux-desktop
 
+    - name: Create .env file
+      run: echo "${{ secrets.FLUTTER_ENV_FILE }}" > .env
+
     - name: Install dependencies
       run: flutter pub get
 
