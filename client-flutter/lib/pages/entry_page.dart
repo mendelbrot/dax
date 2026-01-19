@@ -21,6 +21,8 @@ class _EntryPageState extends State<EntryPage> {
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
+  String _lastSavedHeading = '';
+  String _lastSavedBody = '';
 
   @override
   void initState() {
@@ -48,6 +50,8 @@ class _EntryPageState extends State<EntryPage> {
         setState(() {
           _headingController.text = entry.heading ?? '';
           _bodyController.text = entry.body ?? '';
+          _lastSavedHeading = entry.heading ?? '';
+          _lastSavedBody = entry.body ?? '';
           _isLoading = false;
         });
 
@@ -66,6 +70,11 @@ class _EntryPageState extends State<EntryPage> {
   }
 
   void _onTextChanged() {
+    if (_headingController.text == _lastSavedHeading &&
+        _bodyController.text == _lastSavedBody) {
+      return;
+    }
+
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     if (mounted) {
       setState(() {
@@ -86,6 +95,8 @@ class _EntryPageState extends State<EntryPage> {
       if (mounted) {
         setState(() {
           _isSaving = false;
+          _lastSavedHeading = _headingController.text;
+          _lastSavedBody = _bodyController.text;
         });
       }
     } catch (e) {
