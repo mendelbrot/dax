@@ -8,12 +8,8 @@
   "main": "index.js",
   "scripts": {
     "mermaid": "bash ./notes-dax/mermaid.sh",
-    "supabase": "supabase",
-    "db:reset": "supabase db reset",
-    "db:push": "supabase db push",
-    "db:pull": "supabase db pull",
+    "flutter": "cd client-flutter && flutter run --dart-define-from-file=.env",
     "db:diff": "supabase db diff -f",
-    "status": "supabase status",
     "create-user": "node scripts/create-user.js"
   },
   "devDependencies": {
