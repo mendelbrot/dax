@@ -143,8 +143,18 @@ class _VaultPageState extends State<VaultPage> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
-              await context.push('/vault/${widget.vaultId}/settings');
-              _loadData();
+              final wasDeleted = await context.push(
+                '/vault/${widget.vaultId}/settings',
+              );
+              if (wasDeleted == true) {
+                if (context.mounted) {
+                  context.pop();
+                }
+              } else {
+                if (mounted) {
+                  _loadData();
+                }
+              }
             },
           ),
         ],

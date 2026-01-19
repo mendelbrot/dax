@@ -1,8 +1,7 @@
 import 'package:dax/models/vault.dart';
 import 'package:dax/services/data_service.dart';
-import 'package:dax/services/auth_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 class VaultSettingsPage extends StatefulWidget {
   final String vaultId;
@@ -99,6 +98,47 @@ class _VaultSettingsPageState extends State<VaultSettingsPage> {
     );
   }
 
+  Future<void> _deleteVault() async {
+    try {
+      await Data.vaults.delete(widget.vaultId);
+      if (mounted) {
+        context.pop(true); // true indicates vault was deleted, for vault page to pop back to home page
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error deleting vault: $e')));
+      }
+    }
+  }
+
+  void _showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Vault'),
+        content: const Text(
+          'Are you sure you want to delete this vault? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _deleteVault();
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,14 +163,12 @@ class _VaultSettingsPageState extends State<VaultSettingsPage> {
                 ),
                 const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
+                  leading: const Icon(Icons.delete, color: Colors.red),
                   title: const Text(
-                    'Sign Out',
+                    'Delete Vault',
                     style: TextStyle(color: Colors.red),
                   ),
-                  onTap: () {
-                    context.read<AuthProvider>().signOut();
-                  },
+                  onTap: _showDeleteConfirmationDialog,
                 ),
               ],
             ),
