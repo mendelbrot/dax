@@ -2,9 +2,7 @@ import 'package:dax/models/entry.dart';
 import 'package:dax/models/vault.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../services/auth_provider.dart';
 import '../services/data_service.dart';
 
 class VaultPage extends StatefulWidget {
@@ -113,8 +111,8 @@ class _VaultPageState extends State<VaultPage> {
       });
 
       _loadData();
-      
-      _searchFocusNode.requestFocus(); 
+
+      _searchFocusNode.requestFocus();
     }
   }
 
@@ -140,11 +138,14 @@ class _VaultPageState extends State<VaultPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_vault?.name ?? widget.vaultId),
+        title: Text(_vault?.name ?? ''),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => context.read<AuthProvider>().signOut(),
+            icon: const Icon(Icons.settings),
+            onPressed: () async {
+              await context.push('/vault/${widget.vaultId}/settings');
+              _loadData();
+            },
           ),
         ],
       ),
@@ -180,9 +181,9 @@ class _VaultPageState extends State<VaultPage> {
                 child: CallbackShortcuts(
                   bindings: {
                     const SingleActivator(LogicalKeyboardKey.arrowDown): () {
-                       if (_filteredEntries.isNotEmpty) {
-                         _firstEntryFocusNode.requestFocus();
-                       }
+                      if (_filteredEntries.isNotEmpty) {
+                        _firstEntryFocusNode.requestFocus();
+                      }
                     },
                   },
                   child: TextField(
@@ -223,13 +224,16 @@ class _VaultPageState extends State<VaultPage> {
                   itemBuilder: (context, index) {
                     final entry = _filteredEntries[index];
                     final isFirstItem = index == 0;
-                    
+
                     return CallbackShortcuts(
                       bindings: {
-                        const SingleActivator(LogicalKeyboardKey.enter): () => _openEntry(entry.id!),
-                        
+                        const SingleActivator(LogicalKeyboardKey.enter): () =>
+                            _openEntry(entry.id!),
+
                         if (isFirstItem)
-                          const SingleActivator(LogicalKeyboardKey.arrowUp): () {
+                          const SingleActivator(
+                            LogicalKeyboardKey.arrowUp,
+                          ): () {
                             _searchFocusNode.requestFocus();
                           },
                       },

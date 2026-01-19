@@ -197,8 +197,11 @@ class _HomePageState extends State<HomePage> {
                       final vault = vaults[vaultIndex];
                       return ListTile(
                         title: Text(vault.name ?? vault.id.toString()),
-                        onTap: () {
-                          context.go('/vault/${vault.id}');
+                        onTap: () async {
+                          await context.push('/vault/${vault.id}');
+                          setState(() {
+                            _refreshKey++;
+                          });
                         },
                       );
                     },

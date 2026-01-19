@@ -3,6 +3,7 @@ import '../pages/sign_in_page.dart';
 import '../pages/home_page.dart';
 import '../pages/vault_page.dart';
 import '../pages/entry_page.dart';
+import '../pages/vault_settings_page.dart';
 import 'auth_provider.dart';
 
 GoRouter createAppRouter(AuthProvider authProvider) {
@@ -10,10 +11,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
     initialLocation: '/',
     refreshListenable: authProvider,
     routes: [
-      GoRoute(
-        path: '/signin',
-        builder: (context, state) => const SignInPage(),
-      ),
+      GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
       GoRoute(
         path: '/',
         builder: (context, state) => const HomePage(),
@@ -33,6 +31,14 @@ GoRouter createAppRouter(AuthProvider authProvider) {
                   final vaultId = state.pathParameters['vaultId']!;
                   final entryId = state.pathParameters['entryId']!;
                   return EntryPage(vaultId: vaultId, entryId: entryId);
+                },
+              ),
+              // Nested route for Settings
+              GoRoute(
+                path: 'settings',
+                builder: (context, state) {
+                  final vaultId = state.pathParameters['vaultId']!;
+                  return VaultSettingsPage(vaultId: vaultId);
                 },
               ),
             ],
