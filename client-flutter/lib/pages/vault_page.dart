@@ -16,196 +16,187 @@ class VaultPage extends StatefulWidget {
 }
 
 class _VaultPageState extends State<VaultPage> {
-  int _refreshKey = 0;
+  final _searchController = TextEditingController();
+  
+  bool _isLoading = true;
+  String? _errorMessage;
+  Vault? _vault;
+  List<Entry> _allEntries = [];
+  List<Entry> _filteredEntries = [];
 
-  Future<({Vault vault, List<Entry> entries})> _fetchPageData() async {
-    final vaultFuture = Data.vaults.get(widget.vaultId);
-    final entriesFuture = Data.entries.list(
-      EntryQueryOptions(vaultId: widget.vaultId),
-    );
-
-    return (vault: await vaultFuture, entries: await entriesFuture);
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    _searchController.addListener(_onSearchChanged);
   }
 
-  void _showCreateEntryDialog() {
-    final nameController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Entry Name',
-              border: OutlineInputBorder(),
-            ),
-            autofocus: true,
-            onSubmitted: (_) => _createEntry(nameController.text, context),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => _createEntry(nameController.text, context),
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
-    );
+  @override
+  void didUpdateWidget(VaultPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.vaultId != widget.vaultId) {
+      _loadData();
+    }
   }
 
-  Future<void> _createEntry(String name, BuildContext dialogContext) async {
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    setState(() { _isLoading = true; _errorMessage = null; });
+
     try {
-      await Data.entries.create(
-        Entry(heading: name.trim(), vaultId: widget.vaultId),
-      );
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-      setState(() {
-        _refreshKey++;
-      });
+      final results = await Future.wait([
+        Data.vaults.get(widget.vaultId),
+        Data.entries.list(EntryQueryOptions(vaultId: widget.vaultId)),
+      ]);
+
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Entry created')));
+        setState(() {
+          _vault = results[0] as Vault;
+          _allEntries = results[1] as List<Entry>;
+          _filteredEntries = _allEntries;
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
+      if (mounted) setState(() { _errorMessage = e.toString(); _isLoading = false; });
+    }
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase().trim();
+    
+    setState(() {
+      if (query.length < 2) {
+        _filteredEntries = _allEntries;
+      } else {
+        _filteredEntries = _allEntries.where((entry) {
+          final h = entry.heading?.toLowerCase() ?? '';
+          final b = entry.body?.toLowerCase() ?? '';
+          return h.contains(query) || b.contains(query);
+        }).toList();
       }
+    });
+  }
+
+  Future<void> _openEntry(String entryId) async {
+    await context.push('/vault/${widget.vaultId}/entry/$entryId');
+
+    if (mounted) {
+      setState(() {
+        _searchController.clear();
+        _allEntries = [];
+        _isLoading = true; 
+      });
+
+      _loadData();
+    }
+  }
+
+  Future<void> _createEntry() async {
+    final text = _searchController.text.trim();
+
+    try {
+      final newEntry = await Data.entries.create(
+        Entry(heading: text, vaultId: widget.vaultId),
+      );
+
+      await _openEntry(newEntry.id!);
+
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error creating entry: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      key: ValueKey(_refreshKey),
-      future: _fetchPageData(),
-      builder: (context, snapshot) {
-        // --- LOADING STATE ---
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        // --- ERROR STATE ---
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading data',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => setState(() => _refreshKey++),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        // --- SUCCESS STATE ---
-        final data = snapshot.data!;
-        return _buildPageContent(data.vault, data.entries);
-      },
-    );
-  }
-
-  /// Helper method to build the main content once data is loaded
-  Widget _buildPageContent(Vault vault, List<Entry> entries) {
-    const topDivider = Divider(thickness: 2, height: 2);
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(vault.name ?? widget.vaultId),
-        leading: IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: _showCreateEntryDialog,
-          tooltip: 'Create New Entry',
-        ),
+        title: Text(_vault?.name ?? widget.vaultId),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AuthProvider>().signOut();
-            },
-            tooltip: 'Sign Out',
+            onPressed: () => context.read<AuthProvider>().signOut(),
           ),
         ],
       ),
-      body: entries.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.folder_outlined,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No entries yet',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              children: [
-                topDivider,
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: entries.length * 2,
-                    itemBuilder: (context, index) {
-                      if (index.isOdd) {
-                        return const Divider(thickness: 2, height: 2);
-                      }
-                      final vaultIndex = index ~/ 2;
-                      final entry = entries[vaultIndex];
-                      return ListTile(
-                        title: Text(entry.heading ?? ''),
-                        onTap: () {
-                          context.go(
-                            '/vault/${widget.vaultId}/entry/${entry.id}',
-                          );
-                        },
-                      );
-                    },
+      body: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error: $_errorMessage'),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: 'Search or create...',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                icon: const Icon(Icons.add),
+                onPressed: _createEntry,
+                tooltip: 'Create Note',
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: _filteredEntries.isEmpty
+              ? Center(child: Text(_searchController.text.length >= 2 ? 'No matches' : 'No entries'))
+              : ListView.separated(
+                  itemCount: _filteredEntries.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final entry = _filteredEntries[index];
+                    return ListTile(
+                      title: Text(entry.heading ?? 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(
+                        (entry.body ?? '').split('\n').first,
+                        maxLines: 1, 
+                        overflow: TextOverflow.ellipsis
+                      ),
+                      onTap: () => _openEntry(entry.id!)
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
