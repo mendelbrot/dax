@@ -1,6 +1,7 @@
 import 'package:dax/models/entry.dart';
 import 'package:dax/models/vault.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../services/auth_provider.dart';
@@ -17,6 +18,8 @@ class VaultPage extends StatefulWidget {
 
 class _VaultPageState extends State<VaultPage> {
   final _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _firstEntryFocusNode = FocusNode();
 
   bool _isLoading = true;
   String? _errorMessage;
@@ -42,6 +45,8 @@ class _VaultPageState extends State<VaultPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
+    _firstEntryFocusNode.dispose();
     super.dispose();
   }
 
@@ -108,6 +113,8 @@ class _VaultPageState extends State<VaultPage> {
       });
 
       _loadData();
+      
+      _searchFocusNode.requestFocus(); 
     }
   }
 
@@ -170,14 +177,24 @@ class _VaultPageState extends State<VaultPage> {
           child: Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  autofocus: true,
-                  onSubmitted: (_) => _createEntry(),
-                  decoration: const InputDecoration(
-                    hintText: 'Search or create...',
-                    border: OutlineInputBorder(),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                child: CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.arrowDown): () {
+                       if (_filteredEntries.isNotEmpty) {
+                         _firstEntryFocusNode.requestFocus();
+                       }
+                    },
+                  },
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    autofocus: true,
+                    onSubmitted: (_) => _createEntry(),
+                    decoration: const InputDecoration(
+                      hintText: 'Search or create...',
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                    ),
                   ),
                 ),
               ),
@@ -205,17 +222,30 @@ class _VaultPageState extends State<VaultPage> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final entry = _filteredEntries[index];
-                    return ListTile(
-                      title: Text(
-                        entry.heading ?? 'Untitled',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                    final isFirstItem = index == 0;
+                    
+                    return CallbackShortcuts(
+                      bindings: {
+                        const SingleActivator(LogicalKeyboardKey.enter): () => _openEntry(entry.id!),
+                        
+                        if (isFirstItem)
+                          const SingleActivator(LogicalKeyboardKey.arrowUp): () {
+                            _searchFocusNode.requestFocus();
+                          },
+                      },
+                      child: ListTile(
+                        focusNode: isFirstItem ? _firstEntryFocusNode : null,
+                        title: Text(
+                          entry.heading ?? 'Untitled',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          (entry.body ?? '').split('\n').first,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => _openEntry(entry.id!),
                       ),
-                      subtitle: Text(
-                        (entry.body ?? '').split('\n').first,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      onTap: () => _openEntry(entry.id!),
                     );
                   },
                 ),
