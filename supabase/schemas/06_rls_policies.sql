@@ -3,61 +3,92 @@ ALTER TABLE public.dax_vault ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dax_entry ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for dax_vault
--- Allow authenticated users to read
-CREATE POLICY "Allow authenticated users to read dax_vault"
+-- Users can only read vaults they own
+CREATE POLICY "Users can only read own vaults"
     ON public.dax_vault
     FOR SELECT
     TO authenticated
-    USING (true);
+    USING (owner_id = auth.uid());
 
--- Allow authenticated users to insert
-CREATE POLICY "Allow authenticated users to insert dax_vault"
+-- Users can only insert vaults (owner_id is set automatically by trigger)
+-- The WITH CHECK verifies the trigger set it correctly
+CREATE POLICY "Users can only insert own vaults"
     ON public.dax_vault
     FOR INSERT
     TO authenticated
-    WITH CHECK (true);
+    WITH CHECK (owner_id = auth.uid());
 
--- Allow authenticated users to update
-CREATE POLICY "Allow authenticated users to update dax_vault"
+-- Users can only update vaults they own, and cannot change owner
+CREATE POLICY "Users can only update own vaults"
     ON public.dax_vault
     FOR UPDATE
     TO authenticated
-    USING (true)
-    WITH CHECK (true);
+    USING (owner_id = auth.uid())
+    WITH CHECK (owner_id = auth.uid());
 
--- Allow authenticated users to delete
-CREATE POLICY "Allow authenticated users to delete dax_vault"
+-- Users can only delete vaults they own
+CREATE POLICY "Users can only delete own vaults"
     ON public.dax_vault
     FOR DELETE
     TO authenticated
-    USING (true);
+    USING (owner_id = auth.uid());
 
 -- RLS Policies for dax_entry
--- Allow authenticated users to read
-CREATE POLICY "Allow authenticated users to read dax_entry"
+-- Users can only read entries in vaults they own
+CREATE POLICY "Users can only read entries in own vaults"
     ON public.dax_entry
     FOR SELECT
     TO authenticated
-    USING (true);
+    USING (
+        EXISTS (
+            SELECT 1 FROM dax_vault 
+            WHERE dax_vault.id = dax_entry.vault_id 
+            AND dax_vault.owner_id = auth.uid()
+        )
+    );
 
--- Allow authenticated users to insert
-CREATE POLICY "Allow authenticated users to insert dax_entry"
+-- Users can only insert entries into vaults they own
+CREATE POLICY "Users can only insert entries in own vaults"
     ON public.dax_entry
     FOR INSERT
     TO authenticated
-    WITH CHECK (true);
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM dax_vault 
+            WHERE dax_vault.id = dax_entry.vault_id 
+            AND dax_vault.owner_id = auth.uid()
+        )
+    );
 
--- Allow authenticated users to update
-CREATE POLICY "Allow authenticated users to update dax_entry"
+-- Users can only update entries in vaults they own
+CREATE POLICY "Users can only update entries in own vaults"
     ON public.dax_entry
     FOR UPDATE
     TO authenticated
-    USING (true)
-    WITH CHECK (true);
+    USING (
+        EXISTS (
+            SELECT 1 FROM dax_vault 
+            WHERE dax_vault.id = dax_entry.vault_id 
+            AND dax_vault.owner_id = auth.uid()
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM dax_vault 
+            WHERE dax_vault.id = dax_entry.vault_id 
+            AND dax_vault.owner_id = auth.uid()
+        )
+    );
 
--- Allow authenticated users to delete
-CREATE POLICY "Allow authenticated users to delete dax_entry"
+-- Users can only delete entries in vaults they own
+CREATE POLICY "Users can only delete entries in own vaults"
     ON public.dax_entry
     FOR DELETE
     TO authenticated
-    USING (true);
+    USING (
+        EXISTS (
+            SELECT 1 FROM dax_vault 
+            WHERE dax_vault.id = dax_entry.vault_id 
+            AND dax_vault.owner_id = auth.uid()
+        )
+    );

@@ -1,0 +1,37 @@
+stateDiagram-v2
+    [*] --> Initial: App Launch
+    
+    Initial --> EmailInput: Show Sign In Page
+    EmailInput --> ValidatingEmail: User enters email
+    ValidatingEmail --> EmailError: Invalid email
+    ValidatingEmail --> SendingCode: Valid email, click Send Code
+    
+    EmailError --> EmailInput: Show error message
+    
+    SendingCode --> CodeSent: OTP sent successfully
+    SendingCode --> SendError: Failed to send OTP
+    
+    SendError --> EmailInput: Show error, allow retry
+    
+    CodeSent --> CodeInput: Show OTP input field
+    CodeInput --> VerifyingCode: User enters code, click Verify
+    CodeInput --> BackToEmail: User clicks Change Email
+    
+    BackToEmail --> EmailInput: Return to email input
+    
+    VerifyingCode --> Authenticated: Code verified successfully
+    VerifyingCode --> VerifyError: Invalid or expired code
+    
+    VerifyError --> CodeInput: Show error, allow retry
+    
+    Authenticated --> [*]: Navigate to Home Page
+    
+    note right of Initial
+        Check auth state
+        on app startup
+    end note
+    
+    note right of Authenticated
+        User session persists
+        across app restarts
+    end note
