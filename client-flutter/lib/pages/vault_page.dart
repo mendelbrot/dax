@@ -17,7 +17,7 @@ class VaultPage extends StatefulWidget {
 
 class _VaultPageState extends State<VaultPage> {
   final _searchController = TextEditingController();
-  
+
   bool _isLoading = true;
   String? _errorMessage;
   Vault? _vault;
@@ -46,12 +46,21 @@ class _VaultPageState extends State<VaultPage> {
   }
 
   Future<void> _loadData() async {
-    setState(() { _isLoading = true; _errorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
     try {
       final results = await Future.wait([
         Data.vaults.get(widget.vaultId),
-        Data.entries.list(EntryQueryOptions(vaultId: widget.vaultId)),
+        Data.entries.list(
+          EntryQueryOptions(
+            vaultId: widget.vaultId,
+            sortBy: 'updated_at',
+            ascending: false,
+          ),
+        ),
       ]);
 
       if (mounted) {
@@ -63,13 +72,17 @@ class _VaultPageState extends State<VaultPage> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() { _errorMessage = e.toString(); _isLoading = false; });
+      if (mounted)
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
     }
   }
 
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase().trim();
-    
+
     setState(() {
       if (query.length < 2) {
         _filteredEntries = _allEntries;
@@ -90,7 +103,7 @@ class _VaultPageState extends State<VaultPage> {
       setState(() {
         _searchController.clear();
         _allEntries = [];
-        _isLoading = true; 
+        _isLoading = true;
       });
 
       _loadData();
@@ -106,12 +119,11 @@ class _VaultPageState extends State<VaultPage> {
       );
 
       await _openEntry(newEntry.id!);
-
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -178,20 +190,29 @@ class _VaultPageState extends State<VaultPage> {
         const Divider(height: 1),
         Expanded(
           child: _filteredEntries.isEmpty
-              ? Center(child: Text(_searchController.text.length >= 2 ? 'No matches' : 'No entries'))
+              ? Center(
+                  child: Text(
+                    _searchController.text.length >= 2
+                        ? 'No matches'
+                        : 'No entries',
+                  ),
+                )
               : ListView.separated(
                   itemCount: _filteredEntries.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final entry = _filteredEntries[index];
                     return ListTile(
-                      title: Text(entry.heading ?? 'Untitled', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(
+                        entry.heading ?? 'Untitled',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       subtitle: Text(
                         (entry.body ?? '').split('\n').first,
-                        maxLines: 1, 
-                        overflow: TextOverflow.ellipsis
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      onTap: () => _openEntry(entry.id!)
+                      onTap: () => _openEntry(entry.id!),
                     );
                   },
                 ),
