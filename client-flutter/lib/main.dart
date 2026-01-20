@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'services/auth_provider.dart';
 import 'services/app_router.dart';
 import 'services/supabase_service.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  setPathUrlStrategy();
 
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   const supabasePublishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');

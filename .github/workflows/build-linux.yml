@@ -3,6 +3,8 @@ name: Build Linux
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'client-flutter/**'
   workflow_dispatch:
 
 jobs:
