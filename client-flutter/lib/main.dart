@@ -10,7 +10,9 @@ void main() async {
   setPathUrlStrategy();
 
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  const supabasePublishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+  const supabasePublishableKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+  );
 
   if (supabaseUrl.isEmpty) {
     throw StateError('Missing: SUPABASE_URL');
