@@ -159,7 +159,13 @@ client-flutter/lib/
 
 **Example Entry Model Structure:**
 ```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'entry.freezed.dart';
+part 'entry.g.dart';
+
 @freezed
+@JsonSerializable(fieldRename: FieldRename.snake)
 class Entry with _$Entry {
   const factory Entry({
     String? id,
@@ -168,7 +174,7 @@ class Entry with _$Entry {
     Map<String, dynamic>? attributes,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? vaultId,
+    @JsonKey(name: 'vault_id') String? vaultId,
   }) = _Entry;
 
   factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
@@ -211,25 +217,27 @@ class Entry with _$Entry {
 
 3. **Create vault providers:**
    - `vaultsProvider` - AsyncNotifierProvider for vault list
-   - `vaultProvider(String vaultId)` - FutureProvider for single vault
+   - `vaultDetailProvider(String vaultId)` - AsyncNotifierProvider for single vault (supports mutations)
    - `createVaultProvider` - Provider for create mutation
    - `updateVaultProvider` - Provider for update mutation
    - `deleteVaultProvider` - Provider for delete mutation
 
 4. **Create entry providers:**
    - `entriesProvider(String vaultId)` - AsyncNotifierProvider for entries list
-   - `entryProvider(String entryId)` - FutureProvider for single entry
+   - `entryDetailProvider(String entryId)` - AsyncNotifierProvider for single entry (supports mutations)
    - `createEntryProvider` - Provider for create mutation
    - `updateEntryProvider` - Provider for update mutation
    - `deleteEntryProvider` - Provider for delete mutation
 
-5. **Implement invalidation logic:**
-   - When vault created: invalidate `vaultsProvider`
-   - When vault updated: invalidate `vaultsProvider` and `vaultProvider(vaultId)`
-   - When vault deleted: invalidate `vaultsProvider` and related `entriesProvider`
-   - When entry created: invalidate `entriesProvider(vaultId)`
-   - When entry updated: invalidate `entriesProvider(vaultId)` and `entryProvider(entryId)`
-   - When entry deleted: invalidate `entriesProvider(vaultId)`
+5. **Implement invalidation logic with optimistic updates:**
+   - When vault created: invalidate `vaultsProvider` (lazy refetch - only when watched)
+   - When vault updated: **Use optimistic update** - update `vaultDetailProvider(vaultId)` state directly, invalidate `vaultsProvider` (lazy refetch)
+   - When vault deleted: invalidate `vaultsProvider` and related `entriesProvider` (lazy refetch)
+   - When entry created: invalidate `entriesProvider(vaultId)` (lazy refetch - won't refetch until vault page is shown)
+   - When entry updated: **Use optimistic update** - update `entryDetailProvider(entryId)` state directly, invalidate `entriesProvider(vaultId)` (lazy refetch)
+   - When entry deleted: invalidate `entriesProvider(vaultId)` (lazy refetch)
+
+**Important:** `ref.invalidate()` marks providers as stale but **does NOT refetch immediately**. Refetch only happens when a widget watches the provider. This prevents unnecessary network requests.
 
 **Example Provider Structure:**
 ```dart
@@ -255,8 +263,90 @@ Future<void> createVault(
   final vault = Vault(name: name, settings: settings);
   await supabase.from('dax_vault').insert(vault.toJson());
   
-  // Invalidate vaults list to refresh
+  // Invalidate vaults list - won't refetch until HomePage watches it
   ref.invalidate(vaultsProvider);
+}
+
+// Vault detail provider with optimistic updates
+@riverpod
+class VaultDetail extends _$VaultDetail {
+  @override
+  Future<Vault> build(String vaultId) async {
+    final supabase = ref.watch(supabaseClientProvider);
+    final response = await supabase
+        .from('dax_vault')
+        .select()
+        .eq('id', vaultId)
+        .single();
+    return Vault.fromJson(response);
+  }
+
+  Future<void> saveVault(Vault updatedVault) async {
+    final supabase = ref.watch(supabaseClientProvider);
+    
+    // Save to backend
+    await supabase
+        .from('dax_vault')
+        .update(updatedVault.toJson())
+        .eq('id', updatedVault.id!);
+    
+    // Update local state directly - NO REFETCH!
+    // This prevents unnecessary network request since we already have the data
+    state = AsyncValue.data(updatedVault);
+    
+    // Invalidate vaults list (won't refetch until home page watches it)
+    ref.invalidate(vaultsProvider);
+  }
+
+  Future<void> deleteVault() async {
+    final supabase = ref.watch(supabaseClientProvider);
+    final vaultId = state.value!.id!;
+    await supabase.from('dax_vault').delete().eq('id', vaultId);
+    
+    // Invalidate vaults list (won't refetch until home page watches it)
+    ref.invalidate(vaultsProvider);
+  }
+}
+
+// Entry detail provider with optimistic updates
+@riverpod
+class EntryDetail extends _$EntryDetail {
+  @override
+  Future<Entry> build(String entryId) async {
+    final supabase = ref.watch(supabaseClientProvider);
+    final response = await supabase
+        .from('dax_entry')
+        .select()
+        .eq('id', entryId)
+        .single();
+    return Entry.fromJson(response);
+  }
+
+  Future<void> saveEntry(Entry updatedEntry) async {
+    final supabase = ref.watch(supabaseClientProvider);
+    
+    // Save to backend
+    await supabase
+        .from('dax_entry')
+        .update(updatedEntry.toJson())
+        .eq('id', updatedEntry.id!);
+    
+    // Update local state directly - NO REFETCH!
+    // This prevents unnecessary network request since we already have the data
+    state = AsyncValue.data(updatedEntry);
+    
+    // Invalidate entries list (won't refetch until vault page watches it)
+    ref.invalidate(entriesProvider(updatedEntry.vaultId));
+  }
+
+  Future<void> deleteEntry(String vaultId) async {
+    final supabase = ref.watch(supabaseClientProvider);
+    final entryId = state.value!.id!;
+    await supabase.from('dax_entry').delete().eq('id', entryId);
+    
+    // Invalidate entries list (won't refetch until vault page watches it)
+    ref.invalidate(entriesProvider(vaultId));
+  }
 }
 ```
 
@@ -299,27 +389,85 @@ Future<void> createVault(
 
 **Example Auth Provider:**
 ```dart
+import 'dart:async';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+@freezed
+class AppAuthState with _$AppAuthState {
+  const factory AppAuthState({
+    required bool isAuthenticated,
+    String? userEmail,
+    bool isLoading = false,
+    String? errorMessage,
+  }) = _AppAuthState;
+}
+
 @riverpod
 class Auth extends _$Auth {
+  StreamSubscription<AuthState>? _authSubscription;
+
   @override
-  FutureOr<AuthState> build() async {
+  FutureOr<AppAuthState> build() async {
     final supabase = ref.watch(supabaseClientProvider);
     final user = supabase.auth.currentUser;
     
-    // Listen to auth changes
-    ref.listenSelf((previous, next) {
-      // Handle auth state changes
+    // Listen to auth state changes (AuthState is from Supabase)
+    _authSubscription = supabase.auth.onAuthStateChange.listen((data) {
+      final user = data.session?.user;
+      state = AsyncValue.data(AppAuthState(
+        isAuthenticated: user != null,
+        userEmail: user?.email,
+      ));
     });
     
-    return AuthState(
+    ref.onDispose(() {
+      _authSubscription?.cancel();
+    });
+    
+    return AppAuthState(
       isAuthenticated: user != null,
       userEmail: user?.email,
     );
   }
   
   Future<void> sendOTP(String email) async {
-    // Implementation
-    ref.invalidateSelf(); // Refresh auth state
+    state = AsyncValue.data(state.value!.copyWith(isLoading: true, errorMessage: null));
+    try {
+      final supabase = ref.watch(supabaseClientProvider);
+      await supabase.auth.signInWithOtp(email: email.trim());
+      // State will update automatically via stream listener
+    } catch (e) {
+      state = AsyncValue.data(state.value!.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+  
+  Future<bool> verifyOTP(String email, String token) async {
+    state = AsyncValue.data(state.value!.copyWith(isLoading: true, errorMessage: null));
+    try {
+      final supabase = ref.watch(supabaseClientProvider);
+      await supabase.auth.verifyOTP(
+        email: email.trim(),
+        token: token.trim(),
+        type: OtpType.email,
+      );
+      // State will update automatically via stream listener
+      return true;
+    } catch (e) {
+      state = AsyncValue.data(state.value!.copyWith(
+        isLoading: false,
+        errorMessage: e.toString(),
+      ));
+      return false;
+    }
+  }
+  
+  Future<void> signOut() async {
+    final supabase = ref.watch(supabaseClientProvider);
+    await supabase.auth.signOut();
+    // State will update automatically via stream listener
   }
 }
 ```
@@ -362,15 +510,21 @@ class Auth extends _$Auth {
    - Navigation after create triggers automatic refresh
 
 3. **EntryPage:**
-   - Replace `_fetchData()` with `ref.watch(entryProvider(entryId))`
+   - Replace `_fetchData()` with `ref.watch(entryDetailProvider(entryId))`
    - Keep debounce logic for auto-save
-   - Use `ref.read(updateEntryProvider(...).future)` for saves
-   - Use `ref.read(deleteEntryProvider(...).future)` for deletion
-   - Invalidate on save/delete
+   - Use `ref.read(entryDetailProvider(entryId).notifier).saveEntry(...)` for saves
+   - **Important:** The provider uses optimistic updates - it updates state directly without refetching
+   - Use `ref.read(entryDetailProvider(entryId).notifier).deleteEntry(...)` for deletion
+   - No need to invalidate entry provider on save (state updated directly)
+   - Entries list is invalidated but won't refetch until you navigate back to vault page
 
 4. **VaultSettingsPage:**
-   - Replace `_loadVault()` with `ref.watch(vaultProvider(vaultId))`
-   - Use providers for update/delete operations
+   - Replace `_loadVault()` with `ref.watch(vaultDetailProvider(vaultId))`
+   - Use `ref.read(vaultDetailProvider(vaultId).notifier).saveVault(...)` for updates
+   - **Important:** The provider uses optimistic updates - it updates state directly without refetching
+   - Use `ref.read(vaultDetailProvider(vaultId).notifier).deleteVault()` for deletion
+   - No need to invalidate vault provider on save (state updated directly)
+   - Vaults list is invalidated but won't refetch until you navigate back to home page
    - Remove manual state management
 
 **Example Page Migration:**
@@ -449,6 +603,8 @@ class HomePage extends ConsumerWidget {
 
 **Example Realtime Integration:**
 ```dart
+import 'dart:async';
+
 @riverpod
 class Vaults extends _$Vaults {
   StreamSubscription? _subscription;
@@ -468,7 +624,7 @@ class Vaults extends _$Vaults {
         .from('dax_vault')
         .stream(primaryKey: ['id'])
         .listen((data) {
-      // Invalidate to refresh
+      // Invalidate to refresh - will refetch when provider is watched
       ref.invalidateSelf();
     });
     
@@ -489,6 +645,78 @@ class Vaults extends _$Vaults {
 **Risk Level:** Medium  
 **Estimated Time:** 3-4 hours  
 **Testing:** Test with multiple tabs/devices
+
+---
+
+## Performance Optimization & Refetch Behavior
+
+### Understanding Lazy Invalidation
+
+**Question:** When data is invalidated, will it refetch immediately or wait until I navigate to a page that uses it?
+
+**Answer:** `ref.invalidate()` marks providers as stale but **does NOT refetch immediately**. Refetch only happens when:
+- A widget actively watches the provider (`ref.watch`)
+- You explicitly call `ref.refresh()` (which invalidates + immediately reads)
+
+**Practical Example:**
+- You're editing an entry on `EntryPage`
+- After saving, you call `ref.invalidate(entriesProvider(vaultId))`
+- The entries list **will NOT refetch** while you're still on the EntryPage
+- When you navigate back to `VaultPage` (which watches `entriesProvider`), it will automatically refetch
+- This prevents unnecessary network requests while editing!
+
+### Optimistic Updates for Entry Editor
+
+**Question:** Will the entry editor unnecessarily refetch the entry every time an edit is saved?
+
+**Answer:** No, if you use optimistic updates. Instead of invalidating the entry provider (which would cause a refetch), update the provider's state directly with the data you already have.
+
+**Pattern:**
+```dart
+// In entryDetailProvider (AsyncNotifier class)
+Future<void> saveEntry(Entry updatedEntry) async {
+  final supabase = ref.watch(supabaseClientProvider);
+  
+  // Save to backend
+  await supabase
+      .from('dax_entry')
+      .update(updatedEntry.toJson())
+      .eq('id', updatedEntry.id!);
+  
+  // Update state directly - NO REFETCH!
+  state = AsyncValue.data(updatedEntry);
+  
+  // Invalidate entries list (won't refetch until vault page watches it)
+  ref.invalidate(entriesProvider(updatedEntry.vaultId!));
+}
+```
+
+**Benefits:**
+- No unnecessary network requests
+- UI updates immediately
+- Better performance and user experience
+- Entries list refreshes only when you navigate back to vault page
+
+### When to Use `invalidate` vs `refresh`
+
+**Use `ref.invalidate()` when:**
+- You want to mark data as stale but don't need it immediately
+- You're on a different page and want fresh data when you return
+- You want lazy refetch behavior (default choice)
+
+**Use `ref.refresh()` when:**
+- You need the new value immediately (e.g., pull-to-refresh)
+- You're currently viewing the data and want to force a reload
+- You want immediate refetch behavior
+
+**Example:**
+```dart
+// After creating an entry, invalidate list (won't refetch until vault page shown)
+ref.invalidate(entriesProvider(vaultId));
+
+// If user pulls to refresh on vault page, force immediate refetch
+ref.refresh(entriesProvider(vaultId));
+```
 
 ---
 
@@ -513,16 +741,17 @@ class Vaults extends _$Vaults {
 **Key Principle:** Invalidate providers that depend on changed data.
 
 **Invalidation Rules:**
-- Create vault → invalidate `vaultsProvider`
-- Update vault → invalidate `vaultsProvider` and `vaultProvider(vaultId)`
-- Delete vault → invalidate `vaultsProvider` and all `entriesProvider(vaultId)` for that vault
-- Create entry → invalidate `entriesProvider(vaultId)`
-- Update entry → invalidate `entriesProvider(vaultId)` and `entryProvider(entryId)`
-- Delete entry → invalidate `entriesProvider(vaultId)`
+- Create vault → invalidate `vaultsProvider` (lazy refetch)
+- Update vault → **Optimistic update** - update `vaultDetailProvider(vaultId)` state directly, invalidate `vaultsProvider` (lazy refetch)
+- Delete vault → invalidate `vaultsProvider` and all `entriesProvider(vaultId)` for that vault (lazy refetch)
+- Create entry → invalidate `entriesProvider(vaultId)` (lazy refetch - won't refetch until vault page shown)
+- Update entry → **Optimistic update** - update `entryDetailProvider(entryId)` state directly, invalidate `entriesProvider(vaultId)` (lazy refetch)
+- Delete entry → invalidate `entriesProvider(vaultId)` (lazy refetch)
 
 **Best Practices:**
-- Use `ref.invalidate()` for immediate refresh
-- Use `ref.refresh()` if you need the new value immediately
+- Use `ref.invalidate()` to mark providers stale (lazy refetch - only when watched)
+- Use `ref.refresh()` if you need the new value immediately (forces refetch now)
+- Use optimistic updates for single-item providers when you already have the updated data
 - Consider `autoDispose: false` for important providers that should persist
 
 ### 4. Error Handling
@@ -575,6 +804,8 @@ While tests are not currently part of the project, consider:
 - **Auto-dispose:** Use `autoDispose: true` for providers that should clean up
 - **Selective Watching:** Use `ref.watch(provider.select(...))` to watch only specific parts
 - **Lazy Loading:** Providers only build when first accessed
+- **Lazy Invalidation:** `ref.invalidate()` doesn't refetch until provider is watched - prevents unnecessary network requests
+- **Optimistic Updates:** Update provider state directly when you already have the data (e.g., after saving) instead of invalidating and refetching
 
 ---
 
@@ -596,7 +827,9 @@ While tests are not currently part of the project, consider:
 **Solution:**
 - Only invalidate what's necessary
 - Use selective invalidation
-- Consider using `ref.refresh` instead of `ref.invalidate` when appropriate
+- Remember: `ref.invalidate()` is lazy - it won't refetch until watched, so it's safe to call
+- Use `ref.refresh()` only when you need immediate refetch (e.g., pull-to-refresh)
+- Use optimistic updates instead of invalidating when you already have the updated data
 
 ### 3. State Persistence
 
@@ -648,13 +881,49 @@ Break the work into smaller, manageable phases:
 - Update router
 - Test auth flow thoroughly
 
-**Plan 4: Migrate Pages One-by-One (Higher Risk)**
-- Start with HomePage (simplest)
-- Test thoroughly after each page
-- Move to VaultPage, then EntryPage, then VaultSettingsPage
-- Remove old code once stable
+**Plan 4: Migrate HomePage (Higher Risk)**
+- Convert `HomePage` from `StatefulWidget` to `ConsumerWidget`
+- Replace `FutureBuilder` with `ref.watch(vaultsProvider)`
+- Use `AsyncValue.when()` for loading/error/data states
+- Replace `_createVault` method to use `ref.read(createVaultProvider(...).future)`
+- Remove `_refreshKey` mechanism (no longer needed)
+- Remove manual refresh logic
+- Test vault list display and create vault functionality
+- Verify automatic refresh after vault creation
 
-**Plan 5: Real-time & Polish (Enhancement)**
+**Plan 5: Migrate VaultPage (Higher Risk)**
+- Convert `VaultPage` from `StatefulWidget` to `ConsumerWidget`
+- Replace `_loadData()` with `ref.watch(entriesProvider(vaultId))`
+- Use `AsyncValue.when()` for loading/error/data states
+- Replace `_createEntry` method to use `ref.read(createEntryProvider(...).future)`
+- Remove all manual `_loadData()` calls
+- Remove manual refresh logic
+- Test entry list display, filtering, and create entry functionality
+- Verify automatic refresh after entry creation (when navigating back to vault page)
+
+**Plan 6: Migrate VaultSettingsPage (Higher Risk)**
+- Convert `VaultSettingsPage` from `StatefulWidget` to `ConsumerWidget`
+- Replace `_loadVault()` with `ref.watch(vaultDetailProvider(vaultId))`
+- Use `AsyncValue.when()` for loading/error/data states
+- Replace save logic to use `ref.read(vaultDetailProvider(vaultId).notifier).saveVault(...)`
+- Replace delete logic to use `ref.read(vaultDetailProvider(vaultId).notifier).deleteVault()`
+- Remove manual state management
+- Test vault settings display, update, and delete functionality
+- Verify optimistic updates work (no unnecessary refetch on save)
+- Verify vaults list refreshes when navigating back to home page
+
+**Plan 7: Migrate EntryPage (Higher Risk)**
+- Convert `EntryPage` from `StatefulWidget` to `ConsumerWidget`
+- Replace `_fetchData()` with `ref.watch(entryDetailProvider(entryId))`
+- Keep debounce logic for auto-save (don't remove)
+- Replace save logic to use `ref.read(entryDetailProvider(entryId).notifier).saveEntry(...)`
+- Replace delete logic to use `ref.read(entryDetailProvider(entryId).notifier).deleteEntry(...)`
+- Remove manual state management
+- Test entry display, auto-save, manual save, and delete functionality
+- Verify optimistic updates work (no unnecessary refetch on save)
+- Verify entries list refreshes when navigating back to vault page
+
+**Plan 8: Real-time & Polish (Enhancement)**
 - Add Supabase Realtime subscriptions
 - Optimize refresh logic
 - Clean up any remaining manual refresh code
