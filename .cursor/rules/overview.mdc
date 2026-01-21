@@ -1,0 +1,11 @@
+---
+description: Core project overview and guidelines (always apply)
+globs: **/*  # This makes the rule apply to all files in the project
+---
+
+# Project Overview and Instructions
+
+Dax is a cross-platform app for saving and searching personal notes.
+
+- The Flutter frontend is in /client-flutter.
+- The Supabase backend is in /supabase.
