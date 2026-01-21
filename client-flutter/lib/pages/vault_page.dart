@@ -101,19 +101,7 @@ class _VaultPageState extends State<VaultPage> {
   }
 
   Future<void> _openEntry(String entryId) async {
-    await context.push('/vault/${widget.vaultId}/entry/$entryId');
-
-    if (mounted) {
-      setState(() {
-        _searchController.clear();
-        _allEntries = [];
-        _isLoading = true;
-      });
-
-      _loadData();
-
-      _searchFocusNode.requestFocus();
-    }
+    context.go('/vault/${widget.vaultId}/entry/$entryId');
   }
 
   Future<void> _createEntry() async {
@@ -143,18 +131,7 @@ class _VaultPageState extends State<VaultPage> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
-              final wasDeleted = await context.push(
-                '/vault/${widget.vaultId}/settings',
-              );
-              if (wasDeleted == true) {
-                if (context.mounted) {
-                  context.pop();
-                }
-              } else {
-                if (mounted) {
-                  _loadData();
-                }
-              }
+              context.go('/vault/${widget.vaultId}/settings');
             },
           ),
         ],

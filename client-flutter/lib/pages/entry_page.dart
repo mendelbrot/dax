@@ -3,6 +3,7 @@ import 'package:dax/models/entry.dart';
 import 'package:flutter/material.dart';
 import '../services/data_service.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
 class EntryPage extends StatefulWidget {
   final String vaultId;
@@ -137,7 +138,7 @@ class _EntryPageState extends State<EntryPage> {
         }
         await Data.entries.delete(widget.entryId);
         if (mounted) {
-          Navigator.pop(context);
+          context.go('/vault/${widget.vaultId}');
         }
       } catch (e) {
         if (mounted) {
@@ -160,7 +161,7 @@ class _EntryPageState extends State<EntryPage> {
     _debounce?.cancel();
     await _saveEntry();
     if (mounted) {
-      Navigator.of(context).pop();
+      context.go('/vault/${widget.vaultId}');
     }
   }
 

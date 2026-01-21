@@ -102,7 +102,7 @@ class _VaultSettingsPageState extends State<VaultSettingsPage> {
     try {
       await Data.vaults.delete(widget.vaultId);
       if (mounted) {
-        context.pop(true); // true indicates vault was deleted, for vault page to pop back to home page
+        context.go('/'); // Navigate to home after deletion
       }
     } catch (e) {
       if (mounted) {
