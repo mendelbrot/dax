@@ -1,100 +1,56 @@
+import 'package:dax/models/base_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/vault.dart';
 import '../models/entry.dart';
 import 'supabase_service.dart';
 
-// Query options for entries with sorting and filtering
-class EntryQueryOptions {
-  final String? vaultId;
-  final String? sortBy; // e.g., 'created_at', 'updated_at', 'heading'
-  final bool ascending; // true for ascending, false for descending
-  final Map<String, dynamic>? filters; // e.g., {'heading': 'test'}
+// 1. Generic Query Options (replaces EntryQueryOptions)
+class QueryOptions {
+  final bool ascending;
+  final String? sortBy;
   final int? limit;
   final int? offset;
+  // Generic filters: map of column_name -> value
+  final Map<String, dynamic>? filters; 
 
-  const EntryQueryOptions({
-    this.vaultId,
-    this.sortBy,
+  const QueryOptions({
     this.ascending = true,
-    this.filters,
+    this.sortBy,
     this.limit,
     this.offset,
+    this.filters,
   });
 }
 
-// Vault operations handler
-class VaultService {
-  final SupabaseClient _supabase;
+// 2. The Abstract Base Repository
+// T is the model type (e.g., Vault, Entry)
+abstract class BaseDataService<T extends BaseModel> {
+  final SupabaseClient client;
+  final String tableName;
+  
+  // We need a function to convert JSON back to the Model T
+  final T Function(Map<String, dynamic>) fromMap;
 
-  VaultService(this._supabase);
+  BaseDataService({
+    required this.client,
+    required this.tableName,
+    required this.fromMap,
+  });
 
-  Future<List<Vault>> list() async {
-    final response = await _supabase.from('dax_vault').select();
-    return (response as List<dynamic>)
-        .map((json) => Vault.fromMap(json as Map<String, dynamic>))
-        .toList();
-  }
+  // Generic List with dynamic query building
+  Future<List<T>> list([QueryOptions? options]) async {
+    dynamic query = client.from(tableName).select();
 
-  Future<Vault> get(String id) async {
-    final response = await _supabase
-        .from('dax_vault')
-        .select()
-        .eq('id', id)
-        .single();
-    return Vault.fromMap(response);
-  }
-
-  Future<Vault> create(String name, Map<String, dynamic> settings) async {
-    final vault = Vault(name: name, settings: settings);
-    final response = await _supabase
-        .from('dax_vault')
-        .insert(vault.toMap())
-        .select()
-        .single();
-    return Vault.fromMap(response);
-  }
-
-  Future<Vault> update(Vault vault) async {
-    if (vault.id == null) {
-      throw ArgumentError('Vault id is required for update');
-    }
-    final response = await _supabase
-        .from('dax_vault')
-        .update(vault.toMap())
-        .eq('id', vault.id!)
-        .select()
-        .single();
-    return Vault.fromMap(response);
-  }
-
-  Future<void> delete(String id) async {
-    await _supabase.from('dax_vault').delete().eq('id', id);
-  }
-}
-
-// Entry operations handler
-class EntryService {
-  final SupabaseClient _supabase;
-
-  EntryService(this._supabase);
-
-  Future<List<Entry>> list([EntryQueryOptions? options]) async {
-    dynamic query = _supabase.from('dax_entry').select();
-
-    // Apply filters
     if (options != null) {
-      if (options.vaultId != null) {
-        query = query.eq('vault_id', options.vaultId!);
-      }
-
-      // Apply custom filters
+      // Apply Filters
       if (options.filters != null) {
         options.filters!.forEach((key, value) {
+          // You can add logic here to handle nulls or specific operators
           query = query.eq(key, value);
         });
       }
 
-      // Apply sorting
+      // Apply Sorting
       if (options.sortBy != null) {
         query = query.order(
           options.sortBy!,
@@ -102,58 +58,85 @@ class EntryService {
         );
       }
 
-      // Apply pagination
+      // Apply Pagination
       if (options.limit != null) {
         query = query.limit(options.limit!);
       }
-      if (options.offset != null) {
+      
+      // Note: Supabase range is inclusive
+      if (options.offset != null && options.limit != null) {
         query = query.range(
           options.offset!,
-          options.offset! + (options.limit ?? 10) - 1,
+          options.offset! + options.limit! - 1,
         );
       }
     }
 
-    final response = await query;
-    return (response as List<dynamic>)
-        .map((json) => Entry.fromMap(json as Map<String, dynamic>))
-        .toList();
+    final List<dynamic> response = await query;
+    return response.map((json) => fromMap(json as Map<String, dynamic>)).toList();
   }
 
-  Future<Entry> get(String id) async {
-    final response = await _supabase
-        .from('dax_entry')
+  // Generic Get
+  Future<T> get(String id) async {
+    final response = await client
+        .from(tableName)
         .select()
         .eq('id', id)
         .single();
-    return Entry.fromMap(response);
+    return fromMap(response);
   }
 
-  Future<Entry> create(Entry entry) async {
-    final response = await _supabase
-        .from('dax_entry')
-        .insert(entry.toMap())
+  // Generic Create
+  // We assume the model has a toMap() method, or we pass a map directly
+  Future<T> create(T item) async {
+    final response = await client
+        .from(tableName)
+        .insert(item.toMap())
         .select()
         .single();
-    return Entry.fromMap(response);
+    return fromMap(response);
   }
 
-  Future<Entry> update(Entry entry) async {
-    if (entry.id == null) {
-      throw ArgumentError('Entry id is required for update');
-    }
-    final response = await _supabase
-        .from('dax_entry')
-        .update(entry.toMap())
-        .eq('id', entry.id!)
+  // Generic Update
+  Future<T> update(String id, T item) async {
+    final response = await client
+        .from(tableName)
+        .update(item.toMap())
+        .eq('id', id)
         .select()
         .single();
-    return Entry.fromMap(response);
+    return fromMap(response);
   }
 
+  // Generic Delete
   Future<void> delete(String id) async {
-    await _supabase.from('dax_entry').delete().eq('id', id);
+    await client.from(tableName).delete().eq('id', id);
   }
+}
+
+// Vault Service
+class VaultService extends BaseDataService<Vault> {
+  VaultService(SupabaseClient client)
+      : super(
+          client: client,
+          tableName: 'dax_vault',
+          fromMap: Vault.fromMap, // Pass the factory method
+        );
+
+  // You can still add specific methods here if needed
+  // Future<void> archiveVault(String id) async {
+  //   await update(id, {'is_archived': true});
+  // }
+}
+
+// Entry Service
+class EntryService extends BaseDataService<Entry> {
+  EntryService(SupabaseClient client)
+      : super(
+          client: client,
+          tableName: 'dax_entry',
+          fromMap: Entry.fromMap,
+        );
 }
 
 // Main Data service

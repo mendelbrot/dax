@@ -47,6 +47,7 @@ class _VaultSettingsPageState extends State<VaultSettingsPage> {
 
     try {
       final updatedVault = await Data.vaults.update(
+        widget.vaultId,
         _vault!.copyWith(name: newName),
       );
       if (mounted) {

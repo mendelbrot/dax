@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../services/auth_provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/vault.dart';
 import '../services/data_service.dart';
 
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      await Data.vaults.create(name.trim(), {});
+      await Data.vaults.create(Vault(name: name.trim()));
       if (dialogContext.mounted) {
         Navigator.of(dialogContext).pop();
       }

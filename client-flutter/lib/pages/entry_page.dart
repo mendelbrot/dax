@@ -92,7 +92,7 @@ class _EntryPageState extends State<EntryPage> {
         heading: _headingController.text,
         body: _bodyController.text,
       );
-      await Data.entries.update(entry);
+      await Data.entries.update(widget.entryId, entry);
       if (mounted) {
         setState(() {
           _isSaving = false;

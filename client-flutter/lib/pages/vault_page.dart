@@ -58,8 +58,8 @@ class _VaultPageState extends State<VaultPage> {
       final results = await Future.wait([
         Data.vaults.get(widget.vaultId),
         Data.entries.list(
-          EntryQueryOptions(
-            vaultId: widget.vaultId,
+          QueryOptions(
+            filters: {'vault_id': widget.vaultId},
             sortBy: 'updated_at',
             ascending: false,
           ),
