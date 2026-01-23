@@ -1,48 +1,68 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class Entry {
+  final String? id;
+  final String? heading;
+  final String? body;
+  final Map<String, dynamic>? attributes;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String? vaultId;
 
-part 'entry.freezed.dart';
-part 'entry.g.dart';
+  Entry({
+    this.id,
+    this.heading,
+    this.body,
+    this.attributes,
+    this.createdAt,
+    this.updatedAt,
+    this.vaultId,
+  });
 
-// Custom converter to handle int/string conversion for IDs
-class IdConverter implements JsonConverter<String?, Object?> {
-  const IdConverter();
+  factory Entry.fromMap(Map<String, dynamic> map) {
+    return Entry(
+      id: map['id']?.toString(),
+      heading: map['heading'] as String?,
+      body: map['body'] as String?,
+      attributes: map['attributes'] != null
+          ? Map<String, dynamic>.from(map['attributes'])
+          : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
+      updatedAt: map['updated_at'] != null
+          ? DateTime.tryParse(map['updated_at'])
+          : null,
+      vaultId: map['vault_id']?.toString(),
+    );
+  }
 
-  @override
-  String? fromJson(Object? json) => json?.toString();
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
 
-  @override
-  Object? toJson(String? object) => object;
-}
+    if (heading != null) map['heading'] = heading;
+    if (body != null) map['body'] = body;
+    if (attributes != null) map['attributes'] = attributes;
+    if (vaultId != null) map['vault_id'] = vaultId;
 
-@freezed
-class Entry with _$Entry {
-  const factory Entry({
-    @IdConverter() String? id,
+    return map;
+  }
+
+  Entry copyWith({
+    String? id,
     String? heading,
     String? body,
     Map<String, dynamic>? attributes,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @JsonKey(name: 'updated_at') DateTime? updatedAt,
-    @IdConverter() @JsonKey(name: 'vault_id') String? vaultId,
-  }) = _Entry;
-
-  factory Entry.fromJson(Map<String, dynamic> json) => _$EntryFromJson(json);
-}
-
-// Extension methods for database operations
-extension EntryJson on Entry {
-  /// Convert to JSON for insert operations (excludes id, createdAt, updatedAt)
-  Map<String, dynamic> toInsertJson() => {
-    if (heading != null) 'heading': heading,
-    if (body != null) 'body': body,
-    if (attributes != null) 'attributes': attributes,
-    if (vaultId != null) 'vault_id': vaultId,
-  };
-
-  /// Convert to JSON for update operations (excludes id, createdAt, updatedAt, vaultId)
-  Map<String, dynamic> toUpdateJson() => {
-    if (heading != null) 'heading': heading,
-    if (body != null) 'body': body,
-    if (attributes != null) 'attributes': attributes,
-  };
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    String? vaultId,
+  }) {
+    return Entry(
+      id: id ?? this.id,
+      heading: heading ?? this.heading,
+      body: body ?? this.body,
+      attributes: attributes ?? this.attributes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      vaultId: vaultId ?? this.vaultId,
+    );
+  }
 }

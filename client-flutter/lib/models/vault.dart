@@ -1,43 +1,48 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
+class Vault {
+  final String? id;
+  final String? name;
+  final Map<String, dynamic>? settings;
+  final DateTime? createdAt;
+  final String? ownerId;
 
-part 'vault.freezed.dart';
-part 'vault.g.dart';
+  Vault({this.id, this.name, this.settings, this.createdAt, this.ownerId});
 
-// Custom converter to handle int/string conversion for IDs
-class IdConverter implements JsonConverter<String?, Object?> {
-  const IdConverter();
+  factory Vault.fromMap(Map<String, dynamic> map) {
+    return Vault(
+      id: map['id']?.toString(),
+      name: map['name'] as String?,
+      settings: map['settings'] != null
+          ? Map<String, dynamic>.from(map['settings'])
+          : null,
+      createdAt: map['created_at'] != null
+          ? DateTime.tryParse(map['created_at'])
+          : null,
+      ownerId: map['owner_id']?.toString(),
+    );
+  }
 
-  @override
-  String? fromJson(Object? json) => json?.toString();
+  Map<String, dynamic> toMap() {
+    final map = <String, dynamic>{};
 
-  @override
-  Object? toJson(String? object) => object;
-}
+    if (name != null) map['name'] = name;
+    if (settings != null) map['settings'] = settings;
 
-@freezed
-class Vault with _$Vault {
-  const factory Vault({
-    @IdConverter() String? id,
+    return map;
+  }
+
+  Vault copyWith({
+    String? id,
     String? name,
     Map<String, dynamic>? settings,
-    @JsonKey(name: 'created_at') DateTime? createdAt,
-    @IdConverter() @JsonKey(name: 'owner_id') String? ownerId,
-  }) = _Vault;
-
-  factory Vault.fromJson(Map<String, dynamic> json) => _$VaultFromJson(json);
-}
-
-// Extension methods for database operations
-extension VaultJson on Vault {
-  /// Convert to JSON for insert operations (excludes id, createdAt, ownerId)
-  Map<String, dynamic> toInsertJson() => {
-    if (name != null) 'name': name,
-    if (settings != null) 'settings': settings,
-  };
-
-  /// Convert to JSON for update operations (excludes id, createdAt, ownerId)
-  Map<String, dynamic> toUpdateJson() => {
-    if (name != null) 'name': name,
-    if (settings != null) 'settings': settings,
-  };
+    DateTime? createdAt,
+    String? ownerId,
+  }) {
+    return Vault(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      settings: settings ?? this.settings,
+      createdAt: createdAt ?? this.createdAt,
+      ownerId: ownerId ?? this.ownerId,
+    );
+  }
 }

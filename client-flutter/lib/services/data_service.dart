@@ -31,7 +31,7 @@ class VaultService {
   Future<List<Vault>> list() async {
     final response = await _supabase.from('dax_vault').select();
     return (response as List<dynamic>)
-        .map((json) => Vault.fromJson(json as Map<String, dynamic>))
+        .map((json) => Vault.fromMap(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -41,17 +41,17 @@ class VaultService {
         .select()
         .eq('id', id)
         .single();
-    return Vault.fromJson(response);
+    return Vault.fromMap(response);
   }
 
   Future<Vault> create(String name, Map<String, dynamic> settings) async {
     final vault = Vault(name: name, settings: settings);
     final response = await _supabase
         .from('dax_vault')
-        .insert(vault.toInsertJson())
+        .insert(vault.toMap())
         .select()
         .single();
-    return Vault.fromJson(response);
+    return Vault.fromMap(response);
   }
 
   Future<Vault> update(Vault vault) async {
@@ -60,11 +60,11 @@ class VaultService {
     }
     final response = await _supabase
         .from('dax_vault')
-        .update(vault.toUpdateJson())
+        .update(vault.toMap())
         .eq('id', vault.id!)
         .select()
         .single();
-    return Vault.fromJson(response);
+    return Vault.fromMap(response);
   }
 
   Future<void> delete(String id) async {
@@ -96,7 +96,10 @@ class EntryService {
 
       // Apply sorting
       if (options.sortBy != null) {
-        query = query.order(options.sortBy!, ascending: options.ascending);
+        query = query.order(
+          options.sortBy!,
+          ascending: options.ascending,
+        );
       }
 
       // Apply pagination
@@ -113,7 +116,7 @@ class EntryService {
 
     final response = await query;
     return (response as List<dynamic>)
-        .map((json) => Entry.fromJson(json as Map<String, dynamic>))
+        .map((json) => Entry.fromMap(json as Map<String, dynamic>))
         .toList();
   }
 
@@ -123,16 +126,16 @@ class EntryService {
         .select()
         .eq('id', id)
         .single();
-    return Entry.fromJson(response);
+    return Entry.fromMap(response);
   }
 
   Future<Entry> create(Entry entry) async {
     final response = await _supabase
         .from('dax_entry')
-        .insert(entry.toInsertJson())
+        .insert(entry.toMap())
         .select()
         .single();
-    return Entry.fromJson(response);
+    return Entry.fromMap(response);
   }
 
   Future<Entry> update(Entry entry) async {
@@ -141,11 +144,11 @@ class EntryService {
     }
     final response = await _supabase
         .from('dax_entry')
-        .update(entry.toUpdateJson())
+        .update(entry.toMap())
         .eq('id', entry.id!)
         .select()
         .single();
-    return Entry.fromJson(response);
+    return Entry.fromMap(response);
   }
 
   Future<void> delete(String id) async {
