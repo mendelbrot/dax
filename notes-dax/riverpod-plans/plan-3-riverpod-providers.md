@@ -40,7 +40,7 @@ Create `client-flutter/lib/providers/supabase_provider.dart`:
 ```dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/supabase_service.dart';
+import 'package:dax/services/supabase_service.dart';
 
 part 'supabase_provider.g.dart';
 
@@ -58,7 +58,7 @@ Create `client-flutter/lib/providers/vault_providers.dart`:
 
 ```dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/vault.dart';
+import 'package:dax/models/vault.dart';
 import 'supabase_provider.dart';
 
 part 'vault_providers.g.dart';
@@ -156,7 +156,7 @@ Create `client-flutter/lib/providers/entry_providers.dart`:
 
 ```dart
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../models/entry.dart';
+import 'package:dax/models/entry.dart';
 import 'supabase_provider.dart';
 
 part 'entry_providers.g.dart';

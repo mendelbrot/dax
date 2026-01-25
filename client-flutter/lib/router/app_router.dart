@@ -1,10 +1,10 @@
 import 'package:go_router/go_router.dart';
-import '../pages/sign_in_page.dart';
-import '../pages/home_page.dart';
-import '../pages/vault_page.dart';
-import '../pages/entry_page.dart';
-import '../pages/vault_settings_page.dart';
-import '../providers/auth_provider.dart';
+import 'package:dax/pages/sign_in_page.dart';
+import 'package:dax/pages/home_page.dart';
+import 'package:dax/pages/vault_page.dart';
+import 'package:dax/pages/entry_page.dart';
+import 'package:dax/pages/vault_settings_page.dart';
+import 'package:dax/providers/auth_provider.dart';
 
 GoRouter createAppRouter(AuthProvider authProvider) {
   return GoRouter(

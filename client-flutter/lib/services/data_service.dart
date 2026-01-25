@@ -1,7 +1,7 @@
 import 'package:dax/models/base_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/vault.dart';
-import '../models/entry.dart';
+import 'package:dax/models/vault.dart';
+import 'package:dax/models/entry.dart';
 import 'supabase_service.dart';
 
 // 1. Generic Query Options (replaces EntryQueryOptions)

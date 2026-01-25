@@ -40,7 +40,7 @@ dependencies:
   url_strategy: ^0.3.0
   
   # Riverpod state management
-  flutter_riverpod: ^2.5.1
+  flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.3.5
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
@@ -58,8 +58,6 @@ dev_dependencies:
   
   # Code generation for Riverpod and Freezed
   riverpod_generator: ^2.3.11
-  freezed: ^2.4.7
-  json_serializable: ^6.7.1
   build_runner: ^2.4.8
   riverpod_lint: ^2.3.10
   custom_lint: ^0.6.4

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dax/models/entry.dart';
 import 'package:flutter/material.dart';
-import '../services/data_service.dart';
+import 'package:dax/services/data_service.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 

@@ -1,8 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import 'package:dax/providers/auth_provider.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});

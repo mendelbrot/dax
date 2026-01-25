@@ -3,7 +3,7 @@ import 'package:dax/models/vault.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../services/data_service.dart';
+import 'package:dax/services/data_service.dart';
 
 class VaultPage extends StatefulWidget {
   final String vaultId;

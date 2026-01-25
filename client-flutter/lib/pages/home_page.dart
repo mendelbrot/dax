@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
-import '../models/vault.dart';
-import '../services/data_service.dart';
+import 'package:dax/providers/auth_provider.dart';
+import 'package:dax/models/vault.dart';
+import 'package:dax/services/data_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
