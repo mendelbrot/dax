@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      riverpod_generator:
+        generate_for:
+          - lib/**
+      json_serializable:
+        options:
+          any_map: false
+          checked: false

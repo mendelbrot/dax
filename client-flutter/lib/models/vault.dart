@@ -1,4 +1,6 @@
-class Vault {
+import 'package:dax/models/base_model.dart';
+
+class Vault extends BaseModel{
   final String? id;
   final String? name;
   final Map<String, dynamic>? settings;
@@ -21,6 +23,7 @@ class Vault {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
 

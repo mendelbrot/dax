@@ -7,10 +7,7 @@ class SupabaseService {
     required String url,
     required String publishableKey,
   }) async {
-    await Supabase.initialize(
-      url: url,
-      anonKey: publishableKey,
-    );
+    await Supabase.initialize(url: url, anonKey: publishableKey);
     _client = Supabase.instance.client;
   }
 

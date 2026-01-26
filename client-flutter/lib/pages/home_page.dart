@@ -1,214 +1,150 @@
+import 'package:dax/helpers/data_ui_helpers.dart';
+import 'package:dax/providers/riverpod_providers.dart';
+import 'package:dax/helpers/error_handling_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
-import '../services/auth_provider.dart';
-import '../models/vault.dart';
-import '../services/data_service.dart';
+import 'package:dax/providers/auth_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  int _refreshKey = 0;
-
-  Future<List<Vault>> _fetchVaults() async {
-    return await Data.vaults.list();
+class _HomePageState extends ConsumerState<HomePage> {
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showCreateVaultDialog() {
-    final nameController = TextEditingController();
+    final vaultNameController = TextEditingController();
+
+    Future<void> onSubmit() async {
+      final Result(:isSuccess, :message) = await createVault(
+        vaultNameController.text,
+      );
+
+      if (mounted) {
+        _showSnackBar(message);
+      }
+
+      if (isSuccess && context.mounted) {
+        ref.invalidate(vaultsProvider);
+        Navigator.of(context).pop();
+      }
+    }
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          title: Text('Create vault'),
           content: TextField(
-            controller: nameController,
-            decoration: const InputDecoration(
-              labelText: 'Vault Name',
+            controller: vaultNameController,
+            decoration: InputDecoration(
+              labelText: 'Vault name',
               border: OutlineInputBorder(),
             ),
             autofocus: true,
-            onSubmitted: (_) => _createVault(nameController.text, context),
+            onSubmitted: (_) => onSubmit(),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              onPressed: Navigator.of(context).pop,
+              child: Text('Cancel'),
             ),
-            TextButton(
-              onPressed: () => _createVault(nameController.text, context),
-              child: const Text('Save'),
-            ),
+            TextButton(onPressed: onSubmit, child: Text('Save')),
           ],
         );
       },
     );
   }
 
-  Future<void> _createVault(String name, BuildContext dialogContext) async {
-    if (name.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vault name cannot be empty')),
-      );
-      return;
-    }
-
-    try {
-      await Data.vaults.create(name.trim(), {});
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-      setState(() {
-        _refreshKey++;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Vault created')));
-      }
-    } catch (e) {
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error creating vault: $e')));
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Vault>>(
-      key: ValueKey(_refreshKey),
-      future: _fetchVaults(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: const Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Scaffold(
-            appBar: AppBar(title: const Text('Error')),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading vaults',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    snapshot.error.toString(),
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _refreshKey++;
-                      });
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return _buildPageContent(snapshot.data ?? []);
-      },
-    );
-  }
-
-  Widget _buildPageContent(List<Vault> vaults) {
-    const topDivider = Divider(thickness: 2, height: 2);
+    final vaultsAsync = ref.watch(vaultsProvider);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.add),
+          icon: Icon(Icons.add),
           onPressed: _showCreateVaultDialog,
-          tooltip: 'Create New Vault',
+          tooltip: 'Create new vault',
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             onPressed: () async {
               await context.read<AuthProvider>().signOut();
             },
-            tooltip: 'Sign Out',
+            tooltip: 'Sign out',
           ),
         ],
       ),
-      body: vaults.isEmpty
-          ? Column(
-              children: [
-                topDivider,
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.folder_outlined,
-                          size: 64,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No vaults yet',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      ],
-                    ),
-                  ),
+      body: switch (vaultsAsync) {
+        // 1. Data State: Check if the list is empty first
+        AsyncValue(value: final vaults?) when vaults.isEmpty => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.folder_outlined, size: 64, color: Colors.grey[400]),
+              SizedBox(height: 16),
+              Text(
+                'No vaults yet',
+                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+
+        // 2. Data State: List has items
+        AsyncValue(value: final vaults?) => ListView.builder(
+          padding: EdgeInsets.all(8),
+          itemCount: vaults.length,
+          itemBuilder: (context, index) {
+            final vault = vaults[index];
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
                 ),
-              ],
-            )
-          : Column(
-              children: [
-                topDivider,
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: vaults.length * 2,
-                    itemBuilder: (context, index) {
-                      if (index.isOdd) {
-                        return const Divider(thickness: 2, height: 2);
-                      }
-                      final vaultIndex = index ~/ 2;
-                      final vault = vaults[vaultIndex];
-                      return ListTile(
-                        title: Text(vault.name ?? vault.id.toString()),
-                        onTap: () async {
-                          await context.push('/vault/${vault.id}');
-                          setState(() {
-                            _refreshKey++;
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+                title: Text(vault.name ?? vault.id.toString()),
+                onTap: () => context.go('/vault/${vault.id}'),
+              ),
+            );
+          },
+        ),
+
+        // 3. Error State
+        AsyncValue(:final error?) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 40),
+              Text('Error: ${getErrorMessage(error)}'),
+              TextButton(
+                onPressed: () => ref.invalidate(vaultsProvider),
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+
+        // 4. Loading State
+        _ => Center(child: CircularProgressIndicator()),
+      },
     );
   }
 }

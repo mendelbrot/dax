@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'
+    hide ChangeNotifierProvider;
 import 'package:go_router/go_router.dart';
-import 'services/auth_provider.dart';
-import 'services/app_router.dart';
+import 'providers/auth_provider.dart';
+import 'router/app_router.dart';
 import 'services/supabase_service.dart';
 import 'package:url_strategy/url_strategy.dart';
 
@@ -10,7 +12,9 @@ void main() async {
   setPathUrlStrategy();
 
   const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  const supabasePublishableKey = String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
+  const supabasePublishableKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+  );
 
   if (supabaseUrl.isEmpty) {
     throw StateError('Missing: SUPABASE_URL');
@@ -24,7 +28,7 @@ void main() async {
     publishableKey: supabasePublishableKey,
   );
 
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatefulWidget {

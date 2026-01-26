@@ -1,20 +1,23 @@
 import 'dart:async';
 import 'package:dax/models/entry.dart';
 import 'package:flutter/material.dart';
-import '../services/data_service.dart';
+import 'package:dax/services/data_service.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dax/providers/riverpod_providers.dart';
 
-class EntryPage extends StatefulWidget {
+class EntryPage extends ConsumerStatefulWidget {
   final String vaultId;
   final String entryId;
 
   const EntryPage({super.key, required this.vaultId, required this.entryId});
 
   @override
-  State<EntryPage> createState() => _EntryPageState();
+  ConsumerState<EntryPage> createState() => _EntryPageState();
 }
 
-class _EntryPageState extends State<EntryPage> {
+class _EntryPageState extends ConsumerState<EntryPage> {
   late TextEditingController _headingController;
   late TextEditingController _bodyController;
   Timer? _debounce;
@@ -91,13 +94,16 @@ class _EntryPageState extends State<EntryPage> {
         heading: _headingController.text,
         body: _bodyController.text,
       );
-      await Data.entries.update(entry);
+      await Data.entries.update(widget.entryId, entry);
       if (mounted) {
         setState(() {
           _isSaving = false;
           _lastSavedHeading = _headingController.text;
           _lastSavedBody = _bodyController.text;
         });
+        // Invalidate entries provider - search will auto-refresh since it watches entries
+        ref.invalidate(entriesProvider(widget.vaultId));
+        ref.invalidate(entriesSearchProvider);
       }
     } catch (e) {
       if (mounted) {
@@ -137,7 +143,10 @@ class _EntryPageState extends State<EntryPage> {
         }
         await Data.entries.delete(widget.entryId);
         if (mounted) {
-          Navigator.pop(context);
+          // Invalidate entries provider - search will auto-refresh since it watches entries
+          ref.invalidate(entriesProvider(widget.vaultId));
+          ref.invalidate(entriesSearchProvider);
+          context.go('/vault/${widget.vaultId}');
         }
       } catch (e) {
         if (mounted) {
@@ -160,7 +169,7 @@ class _EntryPageState extends State<EntryPage> {
     _debounce?.cancel();
     await _saveEntry();
     if (mounted) {
-      Navigator.of(context).pop();
+      context.go('/vault/${widget.vaultId}');
     }
   }
 

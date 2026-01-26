@@ -1,4 +1,6 @@
-class Entry {
+import 'package:dax/models/base_model.dart';
+
+class Entry extends BaseModel{
   final String? id;
   final String? heading;
   final String? body;
@@ -35,6 +37,7 @@ class Entry {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{};
 
