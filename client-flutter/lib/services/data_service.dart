@@ -137,6 +137,22 @@ class EntryService extends BaseDataService<Entry> {
           tableName: 'dax_entry',
           fromMap: Entry.fromMap,
         );
+
+  // Search entries by heading and body
+  Future<List<Entry>> searchEntries(String vaultId, String query) async {
+    final trimmedQuery = query.trim();
+    
+    final response = await client
+        .from(tableName)
+        .select()
+        .eq('vault_id', vaultId)
+        .or('heading.ilike.%$trimmedQuery%,body.ilike.%$trimmedQuery%')
+        .order('updated_at', ascending: false);
+    
+    return (response as List)
+        .map((json) => fromMap(json as Map<String, dynamic>))
+        .toList();
+  }
 }
 
 // Main Data service
