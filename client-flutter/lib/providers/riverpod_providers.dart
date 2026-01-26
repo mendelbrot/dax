@@ -32,6 +32,7 @@ final entriesProvider = FutureProvider.family<List<Entry>, String>((
       filters: {'vault_id': vaultId},
       sortBy: 'updated_at',
       ascending: false,
+      limit: 8,
     ),
   );
 });

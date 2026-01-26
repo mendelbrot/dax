@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dax/models/entry.dart';
 import 'package:dax/helpers/data_ui_helpers.dart';
 import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/helpers/formatting_helpers.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -102,7 +103,6 @@ class _VaultPageState extends ConsumerState<VaultPage> {
       body: Column(
         children: [
           _buildSearchBar(),
-          Divider(height: 1),
           Expanded(
             child: switch (entriesAsync) {
               AsyncValue(value: final entries?) => _buildEntriesList(entries),
@@ -133,8 +133,9 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.all(8.0),
+      padding: EdgeInsets.all(16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: CallbackShortcuts(
@@ -150,17 +151,27 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                 onSubmitted: (_) => _createEntry(),
                 decoration: InputDecoration(
                   hintText: 'Search or create...',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                   contentPadding: EdgeInsets.symmetric(horizontal: 16),
                 ),
               ),
             ),
           ),
           SizedBox(width: 8),
-          IconButton.filled(
-            icon: Icon(Icons.add),
-            onPressed: _createEntry,
-            tooltip: 'Create Note',
+          SizedBox(
+            width: 48.0,
+            height: 48.0,
+            child: IconButton.filled(
+              icon: Icon(Icons.add),
+              onPressed: _createEntry,
+              tooltip: 'Create Note',
+              style: IconButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ),
           ),
         ],
       ),
@@ -171,39 +182,87 @@ class _VaultPageState extends ConsumerState<VaultPage> {
     final searchQuery = _searchController.text.trim();
 
     return entries.isEmpty
-        ? Center(child: Text(searchQuery.isEmpty ? 'No entries' : 'No matches'))
-        : ListView.separated(
-            itemCount: entries.length,
-            separatorBuilder: (_, __) => Divider(height: 1),
-            itemBuilder: (context, index) {
-              final entry = entries[index];
-              final isFirstItem = index == 0;
-
-              return CallbackShortcuts(
-                bindings: {
-                  SingleActivator(LogicalKeyboardKey.enter): () =>
-                      _openEntry(entry.id!),
-
-                  if (isFirstItem)
-                    SingleActivator(LogicalKeyboardKey.arrowUp): () {
-                      _searchFocusNode.requestFocus();
-                    },
-                },
-                child: ListTile(
-                  focusNode: isFirstItem ? _firstEntryFocusNode : null,
-                  title: Text(
-                    entry.heading ?? 'Untitled',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+        ? Center(
+            child: Text(searchQuery.length < 2 ? 'No entries' : 'No matches'),
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (searchQuery.length < 2)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    'Recent',
                   ),
-                  subtitle: Text(
-                    (entry.body ?? '').split('\n').first,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  onTap: () => _openEntry(entry.id!),
                 ),
-              );
-            },
+              Expanded(
+                child: ListView.separated(
+                  itemCount: entries.length,
+                  separatorBuilder: (_, __) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Divider(height: 1),
+                  ),
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    final isFirstItem = index == 0;
+
+                    return CallbackShortcuts(
+                      bindings: {
+                        SingleActivator(LogicalKeyboardKey.enter): () =>
+                            _openEntry(entry.id!),
+
+                        if (isFirstItem)
+                          SingleActivator(LogicalKeyboardKey.arrowUp): () {
+                            _searchFocusNode.requestFocus();
+                          },
+                      },
+                      child: ListTile(
+                        focusNode: isFirstItem ? _firstEntryFocusNode : null,
+                        title: Text(
+                          entry.heading ?? '',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          (entry.body ?? '').split('\n').first,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: (entry.updatedAt != null || entry.createdAt != null)
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    formatDateString(entry.updatedAt),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    formatDateString(entry.createdAt),
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color
+                                          ?.withValues(alpha: 0.6),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : null,
+                        onTap: () => _openEntry(entry.id!),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
   }
 }
