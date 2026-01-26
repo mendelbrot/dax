@@ -147,3 +147,6 @@ class Data {
   static VaultService get vaults => VaultService(_supabase);
   static EntryService get entries => EntryService(_supabase);
 }
+
+// UI helper functions
+

@@ -1,3 +1,4 @@
+import 'package:dax/helpers/error_handling_helpers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dax/services/supabase_service.dart';
@@ -47,7 +48,7 @@ class AuthProvider extends ChangeNotifier {
       await SupabaseService.client.auth.signInWithOtp(email: email.trim());
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = _getErrorMessage(e);
+      _errorMessage = getErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,7 +71,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = _getErrorMessage(e);
+      _errorMessage = getErrorMessage(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -87,7 +88,7 @@ class AuthProvider extends ChangeNotifier {
       _userEmail = null;
       _errorMessage = null;
     } catch (e) {
-      _errorMessage = _getErrorMessage(e);
+      _errorMessage = getErrorMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -97,12 +98,5 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
-  }
-
-  String _getErrorMessage(dynamic error) {
-    if (error is AuthException) {
-      return error.message;
-    }
-    return error.toString();
   }
 }
