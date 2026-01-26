@@ -59,10 +59,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               onPressed: Navigator.of(context).pop,
               child: Text('Cancel'),
             ),
-            TextButton(
-              onPressed: onSubmit,
-              child: Text('Save'),
-            ),
+            TextButton(onPressed: onSubmit, child: Text('Save')),
           ],
         );
       },
@@ -96,11 +93,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.folder_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.folder_outlined, size: 64, color: Colors.grey[400]),
               SizedBox(height: 16),
               Text(
                 'No vaults yet',
@@ -111,15 +104,25 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
 
         // 2. Data State: List has items
-        AsyncValue(value: final vaults?) => ListView.separated(
+        AsyncValue(value: final vaults?) => ListView.builder(
+          padding: EdgeInsets.all(8),
           itemCount: vaults.length,
-          separatorBuilder: (context, index) =>
-              Divider(thickness: 2, height: 2),
           itemBuilder: (context, index) {
             final vault = vaults[index];
-            return ListTile(
-              title: Text(vault.name ?? vault.id.toString()),
-              onTap: () => context.go('/vault/${vault.id}'),
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade400),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                title: Text(vault.name ?? vault.id.toString()),
+                onTap: () => context.go('/vault/${vault.id}'),
+              ),
             );
           },
         ),
@@ -132,7 +135,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               Icon(Icons.error_outline, color: Colors.red, size: 40),
               Text('Error: ${getErrorMessage(error)}'),
               TextButton(
-                onPressed: () => ref.refresh(vaultsProvider),
+                onPressed: () => ref.invalidate(vaultsProvider),
                 child: Text('Retry'),
               ),
             ],

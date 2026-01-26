@@ -11,7 +11,7 @@ class QueryOptions {
   final int? limit;
   final int? offset;
   // Generic filters: map of column_name -> value
-  final Map<String, dynamic>? filters; 
+  final Map<String, dynamic>? filters;
 
   const QueryOptions({
     this.ascending = true,
@@ -27,7 +27,7 @@ class QueryOptions {
 abstract class BaseDataService<T extends BaseModel> {
   final SupabaseClient client;
   final String tableName;
-  
+
   // We need a function to convert JSON back to the Model T
   final T Function(Map<String, dynamic>) fromMap;
 
@@ -52,17 +52,14 @@ abstract class BaseDataService<T extends BaseModel> {
 
       // Apply Sorting
       if (options.sortBy != null) {
-        query = query.order(
-          options.sortBy!,
-          ascending: options.ascending,
-        );
+        query = query.order(options.sortBy!, ascending: options.ascending);
       }
 
       // Apply Pagination
       if (options.limit != null) {
         query = query.limit(options.limit!);
       }
-      
+
       // Note: Supabase range is inclusive
       if (options.offset != null && options.limit != null) {
         query = query.range(
@@ -73,7 +70,9 @@ abstract class BaseDataService<T extends BaseModel> {
     }
 
     final List<dynamic> response = await query;
-    return response.map((json) => fromMap(json as Map<String, dynamic>)).toList();
+    return response
+        .map((json) => fromMap(json as Map<String, dynamic>))
+        .toList();
   }
 
   // Generic Get
@@ -117,11 +116,11 @@ abstract class BaseDataService<T extends BaseModel> {
 // Vault Service
 class VaultService extends BaseDataService<Vault> {
   VaultService(SupabaseClient client)
-      : super(
-          client: client,
-          tableName: 'dax_vault',
-          fromMap: Vault.fromMap, // Pass the factory method
-        );
+    : super(
+        client: client,
+        tableName: 'dax_vault',
+        fromMap: Vault.fromMap, // Pass the factory method
+      );
 
   // You can still add specific methods here if needed
   // Future<void> archiveVault(String id) async {
@@ -132,23 +131,19 @@ class VaultService extends BaseDataService<Vault> {
 // Entry Service
 class EntryService extends BaseDataService<Entry> {
   EntryService(SupabaseClient client)
-      : super(
-          client: client,
-          tableName: 'dax_entry',
-          fromMap: Entry.fromMap,
-        );
+    : super(client: client, tableName: 'dax_entry', fromMap: Entry.fromMap);
 
   // Search entries by heading and body
   Future<List<Entry>> searchEntries(String vaultId, String query) async {
     final trimmedQuery = query.trim();
-    
+
     final response = await client
         .from(tableName)
         .select()
         .eq('vault_id', vaultId)
         .or('heading.ilike.%$trimmedQuery%,body.ilike.%$trimmedQuery%')
         .order('updated_at', ascending: false);
-    
+
     return (response as List)
         .map((json) => fromMap(json as Map<String, dynamic>))
         .toList();
@@ -165,4 +160,3 @@ class Data {
 }
 
 // UI helper functions
-

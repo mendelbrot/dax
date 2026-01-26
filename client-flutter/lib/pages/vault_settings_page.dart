@@ -70,9 +70,7 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
 
   void _showDeleteConfirmationDialog() {
     Future<void> onSubmit() async {
-      final Result(:isSuccess, :message) = await deleteVault(
-        widget.vaultId,
-      );
+      final Result(:isSuccess, :message) = await deleteVault(widget.vaultId);
 
       if (mounted) {
         _showSnackBar(message);
@@ -92,8 +90,8 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
         return AlertDialog(
           title: Text('Delete vault'),
           content: Text(
-          'Are you sure you want to delete this vault? This action cannot be undone.',
-        ),
+            'Are you sure you want to delete this vault? This action cannot be undone.',
+          ),
           actions: [
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -148,7 +146,8 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
               const Icon(Icons.error_outline, color: Colors.red, size: 40),
               Text('Error: ${getErrorMessage(error)}'),
               TextButton(
-                onPressed: () => ref.refresh(vaultDetailProvider(widget.vaultId)),
+                onPressed: () =>
+                    ref.invalidate(vaultDetailProvider(widget.vaultId)),
                 child: const Text('Retry'),
               ),
             ],

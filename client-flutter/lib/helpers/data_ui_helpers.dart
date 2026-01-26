@@ -52,7 +52,9 @@ Future<Result> createEntry(String vaultId, String heading) async {
   final trimmedHeading = heading.trim();
 
   try {
-    final newEntry = await Data.entries.create(Entry(heading: trimmedHeading, vaultId: vaultId));
+    final newEntry = await Data.entries.create(
+      Entry(heading: trimmedHeading, vaultId: vaultId),
+    );
     return Result(true, 'Entry created', newEntry.id);
   } catch (e) {
     return Result(false, 'Error creating entry: ${getErrorMessage(e)}');

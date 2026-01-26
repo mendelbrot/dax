@@ -45,7 +45,9 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _openEntry(String entryId) {
@@ -66,7 +68,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
     if (isSuccess && context.mounted) {
       ref.invalidate(entriesProvider(widget.vaultId));
-      ref.invalidate(entriesSearchProvider);  // Invalidate all search results
+      ref.invalidate(entriesSearchProvider);
       if (createdId != null) {
         _openEntry(createdId);
       }
@@ -78,7 +80,11 @@ class _VaultPageState extends ConsumerState<VaultPage> {
     final vaultDetailAsync = ref.watch(vaultDetailProvider(widget.vaultId));
     final searchQuery = _searchController.text.trim();
     final entriesAsync = searchQuery.length >= 2
-        ? ref.watch(entriesSearchProvider(EntrySearchParams(widget.vaultId, searchQuery)))
+        ? ref.watch(
+            entriesSearchProvider(
+              EntrySearchParams(widget.vaultId, searchQuery),
+            ),
+          )
         : ref.watch(entriesProvider(widget.vaultId));
 
     return Scaffold(
@@ -110,7 +116,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                       onPressed: () {
                         ref.invalidate(vaultDetailProvider(widget.vaultId));
                         ref.invalidate(entriesProvider(widget.vaultId));
-                        ref.invalidate(entriesSearchProvider);  // Invalidate all search results
+                        ref.invalidate(entriesSearchProvider);
                       },
                       child: Text('Retry'),
                     ),
@@ -163,15 +169,9 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
   Widget _buildEntriesList(List<Entry> entries) {
     final searchQuery = _searchController.text.trim();
-    
+
     return entries.isEmpty
-        ? Center(
-            child: Text(
-              searchQuery.isEmpty
-                  ? 'No entries'
-                  : 'No matches',
-            ),
-          )
+        ? Center(child: Text(searchQuery.isEmpty ? 'No entries' : 'No matches'))
         : ListView.separated(
             itemCount: entries.length,
             separatorBuilder: (_, __) => Divider(height: 1),
@@ -185,9 +185,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                       _openEntry(entry.id!),
 
                   if (isFirstItem)
-                    SingleActivator(
-                      LogicalKeyboardKey.arrowUp,
-                    ): () {
+                    SingleActivator(LogicalKeyboardKey.arrowUp): () {
                       _searchFocusNode.requestFocus();
                     },
                 },

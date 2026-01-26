@@ -15,7 +15,8 @@ String getErrorMessage(Object error) {
     PostgrestException(message: String msg) ||
     StorageException(message: String msg)
         // We still check isNotEmpty, but we don't need to check != null anymore
-        when msg.isNotEmpty => msg,
+        when msg.isNotEmpty =>
+      msg,
 
     // Handle plain strings
     String msg => msg,
