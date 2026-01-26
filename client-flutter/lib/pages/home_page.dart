@@ -1,5 +1,5 @@
 import 'package:dax/helpers/data_ui_helpers.dart';
-import 'package:dax/providers/vaults_provider.dart';
+import 'package:dax/providers/riverpod_providers.dart';
 import 'package:dax/helpers/error_handling_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

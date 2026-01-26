@@ -1,8 +1,7 @@
 import 'package:dax/models/entry.dart';
 import 'package:dax/helpers/data_ui_helpers.dart';
 import 'package:dax/helpers/error_handling_helpers.dart';
-import 'package:dax/providers/vault_detail_provider.dart';
-import 'package:dax/providers/entries_provider.dart';
+import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -68,7 +67,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
   Future<void> _createEntry() async {
     final text = _searchController.text.trim();
 
-    final Result(:isSuccess, :message, :data) = await createEntry(
+    final Result(:isSuccess, :message, :createdId) = await createEntry(
       widget.vaultId,
       text,
     );
@@ -79,8 +78,8 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
     if (isSuccess && context.mounted) {
       ref.invalidate(entriesProvider(widget.vaultId));
-      if (data != null) {
-        _openEntry(data as String);
+      if (createdId != null) {
+        _openEntry(createdId);
       }
     }
   }

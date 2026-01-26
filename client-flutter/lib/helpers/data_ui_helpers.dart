@@ -6,9 +6,9 @@ import 'package:dax/helpers/error_handling_helpers.dart';
 class Result {
   final bool isSuccess;
   final String message;
-  final dynamic data;
+  final String? createdId;
 
-  Result(this.isSuccess, this.message, {this.data});
+  Result(this.isSuccess, this.message, [this.createdId]);
 }
 
 Future<Result> createVault(String name) async {
@@ -18,8 +18,8 @@ Future<Result> createVault(String name) async {
   }
 
   try {
-    await Data.vaults.create(Vault(name: trimmedName));
-    return Result(true, 'Vault created');
+    final newVault = await await Data.vaults.create(Vault(name: trimmedName));
+    return Result(true, 'Vault created', newVault.id);
   } catch (e) {
     return Result(false, 'Error creating vault: $getErrorMessage(e)');
   }
@@ -53,7 +53,7 @@ Future<Result> createEntry(String vaultId, String heading) async {
 
   try {
     final newEntry = await Data.entries.create(Entry(heading: trimmedHeading, vaultId: vaultId));
-    return Result(true, 'Entry created', data: newEntry.id);
+    return Result(true, 'Entry created', newEntry.id);
   } catch (e) {
     return Result(false, 'Error creating entry: ${getErrorMessage(e)}');
   }
