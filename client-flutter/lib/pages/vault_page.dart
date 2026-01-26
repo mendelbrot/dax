@@ -1,43 +1,33 @@
 import 'package:dax/models/entry.dart';
-import 'package:dax/models/vault.dart';
+import 'package:dax/helpers/data_ui_helpers.dart';
+import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/providers/vault_detail_provider.dart';
+import 'package:dax/providers/entries_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dax/services/data_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class VaultPage extends StatefulWidget {
+class VaultPage extends ConsumerStatefulWidget {
   final String vaultId;
 
   const VaultPage({super.key, required this.vaultId});
 
   @override
-  State<VaultPage> createState() => _VaultPageState();
+  ConsumerState<VaultPage> createState() => _VaultPageState();
 }
 
-class _VaultPageState extends State<VaultPage> {
+class _VaultPageState extends ConsumerState<VaultPage> {
   final _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final FocusNode _firstEntryFocusNode = FocusNode();
 
-  bool _isLoading = true;
-  String? _errorMessage;
-  Vault? _vault;
-  List<Entry> _allEntries = [];
   List<Entry> _filteredEntries = [];
 
   @override
   void initState() {
     super.initState();
-    _loadData();
     _searchController.addListener(_onSearchChanged);
-  }
-
-  @override
-  void didUpdateWidget(VaultPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.vaultId != widget.vaultId) {
-      _loadData();
-    }
   }
 
   @override
@@ -48,50 +38,16 @@ class _VaultPageState extends State<VaultPage> {
     super.dispose();
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final results = await Future.wait([
-        Data.vaults.get(widget.vaultId),
-        Data.entries.list(
-          QueryOptions(
-            filters: {'vault_id': widget.vaultId},
-            sortBy: 'updated_at',
-            ascending: false,
-          ),
-        ),
-      ]);
-
-      if (mounted) {
-        setState(() {
-          _vault = results[0] as Vault;
-          _allEntries = results[1] as List<Entry>;
-          _filteredEntries = _allEntries;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
   void _onSearchChanged() {
+    final entriesAsync = ref.read(entriesProvider(widget.vaultId));
+    final allEntries = entriesAsync.value ?? [];
     final query = _searchController.text.toLowerCase().trim();
 
     setState(() {
       if (query.length < 2) {
-        _filteredEntries = _allEntries;
+        _filteredEntries = allEntries;
       } else {
-        _filteredEntries = _allEntries.where((entry) {
+        _filteredEntries = allEntries.where((entry) {
           final h = entry.heading?.toLowerCase() ?? '';
           final b = entry.body?.toLowerCase() ?? '';
           return h.contains(query) || b.contains(query);
@@ -100,74 +56,90 @@ class _VaultPageState extends State<VaultPage> {
     });
   }
 
-  Future<void> _openEntry(String entryId) async {
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _openEntry(String entryId) {
     context.go('/vault/${widget.vaultId}/entry/$entryId');
   }
 
   Future<void> _createEntry() async {
     final text = _searchController.text.trim();
 
-    try {
-      final newEntry = await Data.entries.create(
-        Entry(heading: text, vaultId: widget.vaultId),
-      );
+    final Result(:isSuccess, :message, :data) = await createEntry(
+      widget.vaultId,
+      text,
+    );
 
-      await _openEntry(newEntry.id!);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    if (mounted) {
+      _showSnackBar(message);
+    }
+
+    if (isSuccess && context.mounted) {
+      ref.invalidate(entriesProvider(widget.vaultId));
+      if (data != null) {
+        _openEntry(data as String);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final vaultDetailAsync = ref.watch(vaultDetailProvider(widget.vaultId));
+    final entriesAsync = ref.watch(entriesProvider(widget.vaultId));
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_vault?.name ?? ''),
+        title: Text(vaultDetailAsync.value?.name ?? ''),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () async {
+            icon: Icon(Icons.settings),
+            onPressed: () {
               context.go('/vault/${widget.vaultId}/settings');
             },
           ),
         ],
       ),
-      body: _buildBody(),
+      body: switch (entriesAsync) {
+        AsyncValue(value: final entries?) => _buildEntriesView(entries),
+        AsyncValue(:final error?) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 40),
+              Text('Error: ${getErrorMessage(error)}'),
+              TextButton(
+                onPressed: () {
+                  ref.invalidate(vaultDetailProvider(widget.vaultId));
+                  ref.invalidate(entriesProvider(widget.vaultId));
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        _ => Center(child: CircularProgressIndicator()),
+      },
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text('Error: $_errorMessage'),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadData, child: const Text('Retry')),
-          ],
-        ),
-      );
+  Widget _buildEntriesView(List<Entry> entries) {
+    if (_filteredEntries.isEmpty && _searchController.text.isEmpty) {
+      _filteredEntries = entries;
     }
 
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(8.0),
+          padding: EdgeInsets.all(8.0),
           child: Row(
             children: [
               Expanded(
                 child: CallbackShortcuts(
                   bindings: {
-                    const SingleActivator(LogicalKeyboardKey.arrowDown): () {
+                    SingleActivator(LogicalKeyboardKey.arrowDown): () {
                       if (_filteredEntries.isNotEmpty) {
                         _firstEntryFocusNode.requestFocus();
                       }
@@ -178,7 +150,7 @@ class _VaultPageState extends State<VaultPage> {
                     focusNode: _searchFocusNode,
                     autofocus: true,
                     onSubmitted: (_) => _createEntry(),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Search or create...',
                       border: OutlineInputBorder(),
                       contentPadding: EdgeInsets.symmetric(horizontal: 16),
@@ -186,16 +158,16 @@ class _VaultPageState extends State<VaultPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               IconButton.filled(
-                icon: const Icon(Icons.add),
+                icon: Icon(Icons.add),
                 onPressed: _createEntry,
                 tooltip: 'Create Note',
               ),
             ],
           ),
         ),
-        const Divider(height: 1),
+        Divider(height: 1),
         Expanded(
           child: _filteredEntries.isEmpty
               ? Center(
@@ -207,18 +179,18 @@ class _VaultPageState extends State<VaultPage> {
                 )
               : ListView.separated(
                   itemCount: _filteredEntries.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, __) => Divider(height: 1),
                   itemBuilder: (context, index) {
                     final entry = _filteredEntries[index];
                     final isFirstItem = index == 0;
 
                     return CallbackShortcuts(
                       bindings: {
-                        const SingleActivator(LogicalKeyboardKey.enter): () =>
+                        SingleActivator(LogicalKeyboardKey.enter): () =>
                             _openEntry(entry.id!),
 
                         if (isFirstItem)
-                          const SingleActivator(
+                          SingleActivator(
                             LogicalKeyboardKey.arrowUp,
                           ): () {
                             _searchFocusNode.requestFocus();
@@ -228,7 +200,7 @@ class _VaultPageState extends State<VaultPage> {
                         focusNode: isFirstItem ? _firstEntryFocusNode : null,
                         title: Text(
                           entry.heading ?? 'Untitled',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
                           (entry.body ?? '').split('\n').first,
