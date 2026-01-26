@@ -1,178 +1,164 @@
-import 'package:dax/models/vault.dart';
-import 'package:dax/services/data_service.dart';
+import 'package:dax/helpers/data_ui_helpers.dart';
+import 'package:dax/providers/vault_detail_provider.dart';
+import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/providers/vaults_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class VaultSettingsPage extends StatefulWidget {
+class VaultSettingsPage extends ConsumerStatefulWidget {
   final String vaultId;
 
   const VaultSettingsPage({super.key, required this.vaultId});
 
   @override
-  State<VaultSettingsPage> createState() => _VaultSettingsPageState();
+  ConsumerState<VaultSettingsPage> createState() => _VaultSettingsPageState();
 }
 
-class _VaultSettingsPageState extends State<VaultSettingsPage> {
-  Vault? _vault;
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadVault();
+class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _loadVault() async {
-    try {
-      final vault = await Data.vaults.get(widget.vaultId);
-      if (mounted) {
-        setState(() {
-          _vault = vault;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString();
-          _isLoading = false;
-        });
-      }
-    }
-  }
+  void _showUpdateNameDialog() {
+    final vaultNameController = TextEditingController();
 
-  Future<void> _updateVaultName(String newName) async {
-    if (_vault == null) return;
-
-    try {
-      final updatedVault = await Data.vaults.update(
+    Future<void> onSubmit() async {
+      final Result(:isSuccess, :message) = await updateVaultName(
         widget.vaultId,
-        _vault!.copyWith(name: newName),
+        vaultNameController.text,
       );
+
       if (mounted) {
-        setState(() {
-          _vault = updatedVault;
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Vault name updated')));
+        _showSnackBar(message);
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error updating name: $e')));
+
+      if (isSuccess && context.mounted) {
+        ref.invalidate(vaultDetailProvider(widget.vaultId));
+        ref.invalidate(vaultsProvider);
+        Navigator.of(context).pop();
       }
     }
-  }
 
-  void _showEditNameDialog() {
-    final controller = TextEditingController(text: _vault?.name);
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Vault Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Vault Name'),
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit vault name'),
+          content: TextField(
+            controller: vaultNameController,
+            decoration: InputDecoration(
+              labelText: 'Vault name',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+            onSubmitted: (_) => onSubmit(),
           ),
-          TextButton(
-            onPressed: () {
-              final newName = controller.text.trim();
-              if (newName.isNotEmpty) {
-                _updateVaultName(newName);
-              }
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: Text('Cancel'),
+            ),
+            TextButton(onPressed: onSubmit, child: Text('Save')),
+          ],
+        );
+      },
     );
   }
 
-  Future<void> _deleteVault() async {
-    try {
-      await Data.vaults.delete(widget.vaultId);
+  void _showDeleteConfirmationDialog() {
+    Future<void> onSubmit() async {
+      final Result(:isSuccess, :message) = await deleteVault(
+        widget.vaultId,
+      );
+
       if (mounted) {
-        context.go('/'); // Navigate to home after deletion
+        _showSnackBar(message);
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error deleting vault: $e')));
+
+      if (isSuccess && context.mounted) {
+        ref.invalidate(vaultDetailProvider(widget.vaultId));
+        ref.invalidate(vaultsProvider);
+        Navigator.of(context).pop();
+        context.go('/');
       }
     }
-  }
 
-  void _showDeleteConfirmationDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Vault'),
-        content: const Text(
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete vault'),
+          content: Text(
           'Are you sure you want to delete this vault? This action cannot be undone.',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              _deleteVault();
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: Navigator.of(context).pop,
+              child: Text('Cancel'),
+            ),
+            TextButton(onPressed: onSubmit, child: Text('Delete')),
+          ],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final vaultDetailAsync = ref.watch(vaultDetailProvider(widget.vaultId));
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Vault Settings')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-          ? Center(child: Text('Error: $_errorMessage'))
-          : ListView(
-              children: [
-                ListTile(
-                  // Streamlined approach: Display name with an edit icon
-                  title: Text(
-                    _vault?.name ?? 'Untitled Vault',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: _showEditNameDialog,
-                    tooltip: 'Edit Name',
-                  ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: const Text(
-                    'Delete Vault',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  onTap: _showDeleteConfirmationDialog,
-                ),
-              ],
+      appBar: AppBar(title: const Text('Vault settings')),
+      body: switch (vaultDetailAsync) {
+        // 2. Data State: List has items
+        AsyncValue(value: final vault?) => ListView(
+          children: [
+            ListTile(
+              title: Text(
+                vault.name ?? 'Untitled Vault',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: _showUpdateNameDialog,
+                tooltip: 'Edit name',
+              ),
             ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text(
+                'Delete vault',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: _showDeleteConfirmationDialog,
+            ),
+          ],
+        ),
+
+        // 3. Error State
+        AsyncValue(:final error?) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              Text('Error: ${getErrorMessage(error)}'),
+              TextButton(
+                onPressed: () => ref.refresh(vaultDetailProvider(widget.vaultId)),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+
+        // 4. Loading State
+        _ => const Center(child: CircularProgressIndicator()),
+      },
     );
   }
 }

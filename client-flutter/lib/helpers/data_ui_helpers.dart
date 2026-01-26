@@ -22,3 +22,26 @@ Future<Result> createVault(String name) async {
     return Result(false, 'Error creating vault: $getErrorMessage(e)');
   }
 }
+
+Future<Result> updateVaultName(String vaultId, String newName) async {
+  final trimmedName = newName.trim();
+  if (trimmedName.isEmpty) {
+    return Result(false, 'Vault name cannot be empty');
+  }
+
+  try {
+    await Data.vaults.update(vaultId, Vault(name: trimmedName));
+    return Result(true, 'Vault name updated');
+  } catch (e) {
+    return Result(false, 'Error updating vault: $getErrorMessage(e)');
+  }
+}
+
+Future<Result> deleteVault(String vaultId) async {
+  try {
+    await Data.vaults.delete(vaultId);
+    return Result(true, 'Vault deleted');
+  } catch (e) {
+    return Result(false, 'Error deleting vault: $getErrorMessage(e)');
+  }
+}

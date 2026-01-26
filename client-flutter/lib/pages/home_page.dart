@@ -40,16 +40,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       }
     }
 
-    ;
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          title: Text('Create vault'),
           content: TextField(
             controller: vaultNameController,
-            decoration: const InputDecoration(
-              labelText: 'Vault Name',
+            decoration: InputDecoration(
+              labelText: 'Vault name',
               border: OutlineInputBorder(),
             ),
             autofocus: true,
@@ -58,11 +57,11 @@ class _HomePageState extends ConsumerState<HomePage> {
           actions: [
             TextButton(
               onPressed: Navigator.of(context).pop,
-              child: const Text('Cancel'),
+              child: Text('Cancel'),
             ),
             TextButton(
               onPressed: onSubmit,
-              child: const Text('Save'),
+              child: Text('Save'),
             ),
           ],
         );
@@ -77,13 +76,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.add),
+          icon: Icon(Icons.add),
           onPressed: _showCreateVaultDialog,
           tooltip: 'Create new vault',
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: Icon(Icons.logout),
             onPressed: () async {
               await context.read<AuthProvider>().signOut();
             },
@@ -98,11 +97,11 @@ class _HomePageState extends ConsumerState<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.folder_open_outlined,
+                Icons.folder_outlined,
                 size: 64,
                 color: Colors.grey[400],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Text(
                 'No vaults yet',
                 style: TextStyle(fontSize: 18, color: Colors.grey[600]),
@@ -115,7 +114,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         AsyncValue(value: final vaults?) => ListView.separated(
           itemCount: vaults.length,
           separatorBuilder: (context, index) =>
-              const Divider(thickness: 2, height: 2),
+              Divider(thickness: 2, height: 2),
           itemBuilder: (context, index) {
             final vault = vaults[index];
             return ListTile(
@@ -130,18 +129,18 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              Icon(Icons.error_outline, color: Colors.red, size: 40),
               Text('Error: ${getErrorMessage(error)}'),
               TextButton(
                 onPressed: () => ref.refresh(vaultsProvider),
-                child: const Text('Retry'),
+                child: Text('Retry'),
               ),
             ],
           ),
         ),
 
         // 4. Loading State
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => Center(child: CircularProgressIndicator()),
       },
     );
   }
