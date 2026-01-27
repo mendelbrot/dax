@@ -133,16 +133,19 @@ class EntryService extends BaseDataService<Entry> {
   EntryService(SupabaseClient client)
     : super(client: client, tableName: 'dax_entry', fromMap: Entry.fromMap);
 
-  // Search entries by heading and body
+  // Search entries by heading and body using trigram and full-text search
   Future<List<Entry>> searchEntries(String vaultId, String query) async {
     final trimmedQuery = query.trim();
 
-    final response = await client
-        .from(tableName)
-        .select()
-        .eq('vault_id', vaultId)
-        .or('heading.ilike.%$trimmedQuery%,body.ilike.%$trimmedQuery%')
-        .order('updated_at', ascending: false);
+    // Use the PostgreSQL RPC function for optimized search
+    // This leverages trigram index on heading and tsvector index on body
+    final response = await client.rpc(
+      'search_entries',
+      params: {
+        'p_vault_id': int.parse(vaultId),
+        'p_query': trimmedQuery,
+      },
+    );
 
     return (response as List)
         .map((json) => fromMap(json as Map<String, dynamic>))

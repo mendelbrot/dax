@@ -4,6 +4,8 @@ globs:
   - supabase/**/*
 ---
 
+**IMPORTANT: NEVER CREATE MIGRATIONS OR MIGRATION FILES**
+
 # Supabase/PostgreSQL Backend Guidelines
 
 * NEVER create migrations files. The development process is with declaritive schema. ALWAYS edit the schemas instead.
