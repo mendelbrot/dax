@@ -1,0 +1,12 @@
+---
+description: Backend-specific guidelines for Supabase and PostgreSQL
+globs: 
+  - supabase/**/*
+---
+
+# Supabase/PostgreSQL Backend Guidelines
+
+* NEVER create migrations files. The development process is with declaritive schema. ALWAYS edit the schemas instead.
+* NEVER create migrations with db diff. the user will do this.
+* NEVER run supabase commands. the user will do this.
+
