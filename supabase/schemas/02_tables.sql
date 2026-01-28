@@ -6,6 +6,7 @@ CREATE TABLE public.dax_vault (
     settings jsonb,
     created_at timestamp with time zone NOT NULL,
     owner_id uuid NOT NULL,
+    transient_client_id uuid, -- temp id provided by frontentend client for realtime change notification filtering
     CONSTRAINT dax_vault_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
@@ -18,5 +19,6 @@ CREATE TABLE public.dax_entry (
     created_at timestamp with time zone NOT NULL,
     updated_at timestamp with time zone NOT NULL,
     vault_id bigint NOT NULL,
+    transient_client_id uuid, -- temp id provided by frontentend client for realtime change notification filtering
     CONSTRAINT dax_entry_vault_id_fkey FOREIGN KEY (vault_id) REFERENCES dax_vault(id) ON DELETE CASCADE
 );

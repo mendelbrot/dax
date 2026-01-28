@@ -1,6 +1,3 @@
--- Enable pg_trgm extension for trigram indexing
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
 -- ============================================
 -- Timestamp Indexes
 -- ============================================
@@ -38,3 +35,6 @@ CREATE INDEX IF NOT EXISTS idx_dax_entry_body_tsvector
 -- For efficient filtering by vault and sorting by date
 CREATE INDEX IF NOT EXISTS idx_dax_entry_vault_created 
   ON public.dax_entry (vault_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_dax_entry_vault_updated 
+  ON public.dax_entry (vault_id, updated_at DESC);

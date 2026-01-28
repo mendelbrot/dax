@@ -1,23 +1,12 @@
--- ============================================
--- Search Entries Function
--- ============================================
--- Searches entries using trigram fuzzy matching on heading
--- and full-text search on body content
-CREATE OR REPLACE FUNCTION search_entries(
-  p_vault_id BIGINT,
-  p_query TEXT
-)
-RETURNS TABLE (
-  id BIGINT,
-  vault_id BIGINT,
-  heading CHARACTER VARYING(255),
-  body TEXT,
-  body_tsvector TSVECTOR,
-  attributes JSONB,
-  created_at TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ
-)
-AS $$
+CREATE INDEX idx_dax_entry_vault_updated ON public.dax_entry USING btree (vault_id, updated_at DESC);
+
+set check_function_bodies = off;
+
+CREATE OR REPLACE FUNCTION public.search_entries(p_vault_id bigint, p_query text)
+ RETURNS TABLE(id bigint, vault_id bigint, heading character varying, body text, body_tsvector tsvector, attributes jsonb, created_at timestamp with time zone, updated_at timestamp with time zone)
+ LANGUAGE plpgsql
+ STABLE
+AS $function$
 DECLARE
   ts_query_text TEXT;
 BEGIN
@@ -45,7 +34,7 @@ BEGIN
     )
   ORDER BY e.updated_at DESC;
 END;
-$$ LANGUAGE plpgsql STABLE;
+$function$
+;
 
--- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION search_entries(BIGINT, TEXT) TO authenticated;
+
