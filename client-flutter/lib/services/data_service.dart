@@ -2,7 +2,6 @@ import 'package:dax/models/base_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dax/models/vault.dart';
 import 'package:dax/models/entry.dart';
-import 'supabase_service.dart';
 
 // 1. Generic Query Options (replaces EntryQueryOptions)
 class QueryOptions {
@@ -155,7 +154,7 @@ class EntryService extends BaseDataService<Entry> {
 
 // Main Data service
 class Data {
-  static final SupabaseClient _supabase = SupabaseService.client;
+  static final SupabaseClient _supabase = Supabase.instance.client;
 
   // Nested service properties
   static VaultService get vaults => VaultService(_supabase);

@@ -1,7 +1,6 @@
 import 'package:dax/helpers/error_handling_helpers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:dax/services/supabase_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -19,9 +18,9 @@ class AuthProvider extends ChangeNotifier {
     _listenToAuthChanges();
   }
 
-  static User? get currentUser => SupabaseService.client.auth.currentUser;
+  static User? get currentUser => Supabase.instance.client.auth.currentUser;
 
-  static Stream<AuthState> get authStateChanges => SupabaseService.client.auth.onAuthStateChange;
+  static Stream<AuthState> get authStateChanges => Supabase.instance.client.auth.onAuthStateChange;
 
   void _checkAuthState() {
     _isAuthenticated = currentUser != null;
@@ -45,7 +44,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await SupabaseService.client.auth.signInWithOtp(email: email.trim());
+      await Supabase.instance.client.auth.signInWithOtp(email: email.trim());
       _errorMessage = null;
     } catch (e) {
       _errorMessage = getErrorMessage(e);
@@ -61,7 +60,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await SupabaseService.client.auth.verifyOTP(
+      await Supabase.instance.client.auth.verifyOTP(
         email: email.trim(),
         token: token.trim(),
         type: OtpType.email,
@@ -83,7 +82,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await SupabaseService.client.auth.signOut();
+      await Supabase.instance.client.auth.signOut();
       _isAuthenticated = false;
       _userEmail = null;
       _errorMessage = null;
