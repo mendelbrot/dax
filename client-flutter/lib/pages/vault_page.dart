@@ -10,7 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VaultPage extends ConsumerStatefulWidget {
-  final String vaultId;
+  final int vaultId;
 
   const VaultPage({super.key, required this.vaultId});
 
@@ -51,7 +51,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _openEntry(String entryId) {
+  void _openEntry(int entryId) {
     context.go('/vault/${widget.vaultId}/entry/$entryId');
   }
 
@@ -71,7 +71,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
       ref.invalidate(entriesProvider(widget.vaultId));
       ref.invalidate(entriesSearchProvider);
       if (createdId != null) {
-        _openEntry(createdId);
+        _openEntry(createdId as int);
       }
     }
   }
@@ -198,7 +198,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
               Expanded(
                 child: ListView.separated(
                   itemCount: entries.length,
-                  separatorBuilder: (_, __) => Padding(
+                  separatorBuilder: (_, _) => Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Divider(height: 1),
                   ),

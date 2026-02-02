@@ -3,9 +3,15 @@ import 'package:dax/models/vault.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dax/services/data_service.dart';
 
+import 'package:uuid/uuid.dart';
+
+// Provider for a session-long ID to identify this client instance
+// Used for "echo cancellation" in realtime sync
+final transientClientIdProvider = Provider<String>((ref) => const Uuid().v4());
+
 // Parameters for entry search
 class EntrySearchParams {
-  final String vaultId;
+  final int vaultId;
   final String query;
 
   const EntrySearchParams(this.vaultId, this.query);
@@ -23,7 +29,7 @@ class EntrySearchParams {
 }
 
 // Provider for listing all entries in a vault
-final entriesProvider = FutureProvider.family<List<Entry>, String>((
+final entriesProvider = FutureProvider.family<List<Entry>, int>((
   ref,
   vaultId,
 ) async {
@@ -47,7 +53,7 @@ final vaultsProvider = FutureProvider<List<Vault>>((ref) async {
   return await Data.vaults.list();
 });
 
-final vaultDetailProvider = FutureProvider.family<Vault, String>((
+final vaultDetailProvider = FutureProvider.family<Vault, int>((
   ref,
   id,
 ) async {

@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VaultSettingsPage extends ConsumerStatefulWidget {
-  final String vaultId;
+  final int vaultId;
 
   const VaultSettingsPage({super.key, required this.vaultId});
 

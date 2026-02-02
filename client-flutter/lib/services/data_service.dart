@@ -2,7 +2,7 @@ import 'package:dax/models/base_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dax/models/vault.dart';
 import 'package:dax/models/entry.dart';
-import 'supabase_service.dart';
+import 'package:uuid/uuid.dart';
 
 // 1. Generic Query Options (replaces EntryQueryOptions)
 class QueryOptions {
@@ -24,9 +24,11 @@ class QueryOptions {
 
 // 2. The Abstract Base Repository
 // T is the model type (e.g., Vault, Entry)
-abstract class BaseDataService<T extends BaseModel> {
+// ID is the type of the primary key (e.g., int, String)
+abstract class BaseDataService<T extends BaseModel, ID> {
   final SupabaseClient client;
   final String tableName;
+  final String? transientClientId;
 
   // We need a function to convert JSON back to the Model T
   final T Function(Map<String, dynamic>) fromMap;
@@ -35,6 +37,7 @@ abstract class BaseDataService<T extends BaseModel> {
     required this.client,
     required this.tableName,
     required this.fromMap,
+    this.transientClientId,
   });
 
   // Generic List with dynamic query building
@@ -76,11 +79,11 @@ abstract class BaseDataService<T extends BaseModel> {
   }
 
   // Generic Get
-  Future<T> get(String id) async {
+  Future<T> get(ID id) async {
     final response = await client
         .from(tableName)
         .select()
-        .eq('id', id)
+        .eq('id', id as Object)
         .single();
     return fromMap(response);
   }
@@ -88,38 +91,47 @@ abstract class BaseDataService<T extends BaseModel> {
   // Generic Create
   // We assume the model has a toMap() method, or we pass a map directly
   Future<T> create(T item) async {
+    final data = item.toMap();
+    if (transientClientId != null) {
+      data['transient_client_id'] = transientClientId;
+    }
     final response = await client
         .from(tableName)
-        .insert(item.toMap())
+        .insert(data)
         .select()
         .single();
     return fromMap(response);
   }
 
   // Generic Update
-  Future<T> update(String id, T item) async {
+  Future<T> update(ID id, T item) async {
+    final data = item.toMap();
+    if (transientClientId != null) {
+      data['transient_client_id'] = transientClientId;
+    }
     final response = await client
         .from(tableName)
-        .update(item.toMap())
-        .eq('id', id)
+        .update(data)
+        .eq('id', id as Object)
         .select()
         .single();
     return fromMap(response);
   }
 
   // Generic Delete
-  Future<void> delete(String id) async {
-    await client.from(tableName).delete().eq('id', id);
+  Future<void> delete(ID id) async {
+    await client.from(tableName).delete().eq('id', id as Object);
   }
 }
 
 // Vault Service
-class VaultService extends BaseDataService<Vault> {
-  VaultService(SupabaseClient client)
+class VaultService extends BaseDataService<Vault, int> {
+  VaultService(SupabaseClient client, String? transientClientId)
     : super(
         client: client,
         tableName: 'dax_vault',
         fromMap: Vault.fromMap, // Pass the factory method
+        transientClientId: transientClientId,
       );
 
   // You can still add specific methods here if needed
@@ -129,20 +141,23 @@ class VaultService extends BaseDataService<Vault> {
 }
 
 // Entry Service
-class EntryService extends BaseDataService<Entry> {
-  EntryService(SupabaseClient client)
-    : super(client: client, tableName: 'dax_entry', fromMap: Entry.fromMap);
+class EntryService extends BaseDataService<Entry, int> {
+  EntryService(SupabaseClient client, String? transientClientId)
+    : super(client: client, tableName: 'dax_entry', fromMap: Entry.fromMap, transientClientId: transientClientId);
 
-  // Search entries by heading and body
-  Future<List<Entry>> searchEntries(String vaultId, String query) async {
+  // Search entries by heading and body using trigram and full-text search
+  Future<List<Entry>> searchEntries(int vaultId, String query) async {
     final trimmedQuery = query.trim();
 
-    final response = await client
-        .from(tableName)
-        .select()
-        .eq('vault_id', vaultId)
-        .or('heading.ilike.%$trimmedQuery%,body.ilike.%$trimmedQuery%')
-        .order('updated_at', ascending: false);
+    // Use the PostgreSQL RPC function for optimized search
+    // This leverages trigram index on heading and tsvector index on body
+    final response = await client.rpc(
+      'search_entries',
+      params: {
+        'p_vault_id': vaultId,
+        'p_query': trimmedQuery,
+      },
+    );
 
     return (response as List)
         .map((json) => fromMap(json as Map<String, dynamic>))
@@ -152,11 +167,12 @@ class EntryService extends BaseDataService<Entry> {
 
 // Main Data service
 class Data {
-  static final SupabaseClient _supabase = SupabaseService.client;
+  static final SupabaseClient _supabase = Supabase.instance.client;
+  static final String transientClientId = const Uuid().v4();
 
   // Nested service properties
-  static VaultService get vaults => VaultService(_supabase);
-  static EntryService get entries => EntryService(_supabase);
+  static VaultService get vaults => VaultService(_supabase, transientClientId);
+  static EntryService get entries => EntryService(_supabase, transientClientId);
 }
 
 // UI helper functions

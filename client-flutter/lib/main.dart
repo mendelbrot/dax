@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'
     hide ChangeNotifierProvider;
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'providers/auth_provider.dart';
 import 'router/app_router.dart';
-import 'services/supabase_service.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
@@ -23,9 +23,9 @@ void main() async {
     throw StateError('Missing: SUPABASE_PUBLISHABLE_KEY');
   }
 
-  await SupabaseService.initialize(
+  await Supabase.initialize(
     url: supabaseUrl,
-    publishableKey: supabasePublishableKey,
+    anonKey: supabasePublishableKey,
   );
 
   runApp(const ProviderScope(child: MyApp()));

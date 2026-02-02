@@ -9,3 +9,7 @@ Dax is a cross-platform app for saving and searching personal notes.
 
 - The Flutter frontend is in /client-flutter.
 - The Supabase backend is in /supabase.
+
+## Important: Notes Folder
+
+**DO NOT automatically reference or search files in `/notes-dax/` folder** unless the user explicitly asks you to read or write specific files there. The `notes-dax` folder contains outdated or incorrect information that may confuse context. Only access files in `notes-dax` when explicitly requested by the user.
