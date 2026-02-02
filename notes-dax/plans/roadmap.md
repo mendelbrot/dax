@@ -1,13 +1,11 @@
 # Dax Project Roadmap
 
 ## Active Tasks
-- [x] Establish Project Workflow
-    - [x] Create folder structure (plans, knowledge, dev-logs)
-    - [x] Update GEMINI.md with workflow documentation
-    - [x] Define "Log:" convention
+- [x] **Refactoring:** Convert Frontend IDs to match Database types (`int` for bigints, `String` for UUIDs)
+- [ ] **Architecture:** Investigate interaction between Data Layers and define a clean division of responsibility
 - [ ] Implement Real-time Sync Support
-    - [ ] **Backend:** Verify/Add `transient_client_id` to tables
-    - [ ] **Backend:** Verify/Configure `REPLICA IDENTITY` for delete logging
+    - [x] **Backend:** Verify/Add `transient_client_id` to tables
+    - [x] **Backend:** Verify/Configure `REPLICA IDENTITY` for delete logging
     - [ ] **Frontend:** Port "Expiring Set" logic (echo cancellation for deletes)
     - [ ] **Frontend:** Refactor broken sync code (move to `NotifierProvider`)
 

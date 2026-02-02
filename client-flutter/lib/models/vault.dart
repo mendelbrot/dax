@@ -1,7 +1,7 @@
 import 'package:dax/models/base_model.dart';
 
 class Vault extends BaseModel{
-  final String? id;
+  final int? id;
   final String? name;
   final Map<String, dynamic>? settings;
   final DateTime? createdAt;
@@ -11,7 +11,7 @@ class Vault extends BaseModel{
 
   factory Vault.fromMap(Map<String, dynamic> map) {
     return Vault(
-      id: map['id']?.toString(),
+      id: map['id'] as int?,
       name: map['name'] as String?,
       settings: map['settings'] != null
           ? Map<String, dynamic>.from(map['settings'])
@@ -34,7 +34,7 @@ class Vault extends BaseModel{
   }
 
   Vault copyWith({
-    String? id,
+    int? id,
     String? name,
     Map<String, dynamic>? settings,
     DateTime? createdAt,

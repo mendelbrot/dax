@@ -12,6 +12,8 @@ CREATE INDEX idx_dax_entry_updated_at ON public.dax_entry USING btree (updated_a
 
 CREATE INDEX idx_dax_entry_vault_created ON public.dax_entry USING btree (vault_id, created_at DESC);
 
+CREATE INDEX idx_dax_entry_vault_updated ON public.dax_entry USING btree (vault_id, updated_at DESC);
+
 CREATE INDEX idx_dax_entry_vault_id ON public.dax_entry USING btree (vault_id);
 
 set check_function_bodies = off;
@@ -19,7 +21,7 @@ set check_function_bodies = off;
 CREATE OR REPLACE FUNCTION public.search_entries(p_vault_id bigint, p_query text)
  RETURNS TABLE(id bigint, vault_id bigint, heading character varying, body text, body_tsvector tsvector, attributes jsonb, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE plpgsql
- STABLE SECURITY DEFINER
+ STABLE
 AS $function$
 DECLARE
   ts_query_text TEXT;

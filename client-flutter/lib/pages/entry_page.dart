@@ -8,8 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 
 class EntryPage extends ConsumerStatefulWidget {
-  final String vaultId;
-  final String entryId;
+  final int vaultId;
+  final int entryId;
 
   const EntryPage({super.key, required this.vaultId, required this.entryId});
 

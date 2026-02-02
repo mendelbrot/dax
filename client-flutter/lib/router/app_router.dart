@@ -20,7 +20,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
           GoRoute(
             path: 'vault/:vaultId',
             builder: (context, state) {
-              final vaultId = state.pathParameters['vaultId']!;
+              final vaultId = int.parse(state.pathParameters['vaultId']!);
               return VaultPage(vaultId: vaultId);
             },
             routes: [
@@ -28,8 +28,8 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'entry/:entryId',
                 builder: (context, state) {
-                  final vaultId = state.pathParameters['vaultId']!;
-                  final entryId = state.pathParameters['entryId']!;
+                  final vaultId = int.parse(state.pathParameters['vaultId']!);
+                  final entryId = int.parse(state.pathParameters['entryId']!);
                   return EntryPage(vaultId: vaultId, entryId: entryId);
                 },
               ),
@@ -37,7 +37,7 @@ GoRouter createAppRouter(AuthProvider authProvider) {
               GoRoute(
                 path: 'settings',
                 builder: (context, state) {
-                  final vaultId = state.pathParameters['vaultId']!;
+                  final vaultId = int.parse(state.pathParameters['vaultId']!);
                   return VaultSettingsPage(vaultId: vaultId);
                 },
               ),

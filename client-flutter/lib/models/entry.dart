@@ -1,13 +1,13 @@
 import 'package:dax/models/base_model.dart';
 
 class Entry extends BaseModel{
-  final String? id;
+  final int? id;
   final String? heading;
   final String? body;
   final Map<String, dynamic>? attributes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final String? vaultId;
+  final int? vaultId;
 
   Entry({
     this.id,
@@ -21,7 +21,7 @@ class Entry extends BaseModel{
 
   factory Entry.fromMap(Map<String, dynamic> map) {
     return Entry(
-      id: map['id']?.toString(),
+      id: map['id'] as int?,
       heading: map['heading'] as String?,
       body: map['body'] as String?,
       attributes: map['attributes'] != null
@@ -33,7 +33,7 @@ class Entry extends BaseModel{
       updatedAt: map['updated_at'] != null
           ? DateTime.tryParse(map['updated_at'])
           : null,
-      vaultId: map['vault_id']?.toString(),
+      vaultId: map['vault_id'] as int?,
     );
   }
 
@@ -50,13 +50,13 @@ class Entry extends BaseModel{
   }
 
   Entry copyWith({
-    String? id,
+    int? id,
     String? heading,
     String? body,
     Map<String, dynamic>? attributes,
     DateTime? createdAt,
     DateTime? updatedAt,
-    String? vaultId,
+    int? vaultId,
   }) {
     return Entry(
       id: id ?? this.id,
