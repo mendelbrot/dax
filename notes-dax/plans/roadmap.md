@@ -6,8 +6,8 @@
 - [ ] Implement Real-time Sync Support
     - [x] **Backend:** Verify/Add `transient_client_id` to tables
     - [x] **Backend:** Verify/Configure `REPLICA IDENTITY` for delete logging
-    - [ ] **Frontend:** Port "Expiring Set" logic (echo cancellation for deletes)
-    - [ ] **Frontend:** Refactor broken sync code (move to `NotifierProvider`)
+    - [x] **Frontend:** Port "Expiring Set" logic (echo cancellation for deletes)
+    - [x] **Frontend:** Refactor and fix sync code (implemented in `RealtimeSyncService`)
 
 ## Backlog
 - [ ] **Frontend:** Restructure folder organization

@@ -19,14 +19,14 @@ We generate a random UUID when the app starts (the `transientClientId`). We send
     - **Sending:** `UPDATE ... SET ..., transient_client_id = 'my-uuid'`
     - **Receiving:** In the realtime callback:
         ```dart
-        if (payload.newRecord['transient_client_id'] == mySessionId) {
+        if (payload.newRecord['transient_client_id'] == Data.sessionId) {
            return; // Ignore! It's my own echo.
         }
         // Otherwise, refresh data because someone else changed it.
         ```
 
 ### B. The "Expiring Set" (For Deletes)
-Postgres `DELETE` events are tricky. They often don't contain the full record data (and thus might miss the `transient_client_id` unless specifically configured). Even with configuration, it's safer to track the *action* locally. **<-- the reason is the log contains only the info from the old record (because there is no new updated record) so the transient id is from the last create or update evewnt and may not be the same.**
+Postgres `DELETE` events are tricky. They often don't contain the full record data (and thus might miss the `transient_client_id` unless specifically configured). Even with configuration, the `transient_client_id` in the `old_record` reflects the *last updater*, not the person deleting it.
 
 - **The Logic:**
     1.  User clicks "Delete Note #123".
@@ -34,10 +34,10 @@ Postgres `DELETE` events are tricky. They often don't contain the full record da
     3.  App sends `DELETE` request to API.
     4.  ...milliseconds later... Realtime event arrives: "Note #123 was deleted".
     5.  App checks Expiring Set: "Do I have 123 in there?"
-        - **Yes:** "Oh, that was me. Ignore." (Remove 123 from set). **<-- don't remove it from the set, just let it expire on its own**
+        - **Yes:** "Oh, that was me. Ignore." (Remove 123 from set).
         - **No:** "Someone else deleted 123! I need to remove it from my UI."
 
-The set is "Expiring" because if the event *never* comes (network error), we don't want to ignore `123` forever. It automatically cleans itself up after 5-10 seconds. **<-- nope, the reason for the item expire is just to avoid memory leaks and holding on to unneeded data**
+The set is "Expiring" to prevent memory leaks and ensure we don't hold onto IDs forever if the network event never arrives.
 
 ## 3. Riverpod: Providers vs. Notifiers
 
@@ -60,7 +60,7 @@ You mentioned confusion about `Provider` vs `ChangeNotifierProvider` vs `Notifie
 Add the `ExpiringSet` class to `lib/helpers/`. This is your "memory" for deleted items.
 
 ### Step 2: Global Session ID
-In `RealtimeSyncService`, generate a `final _transientClientId = Uuid().v4();`.
+In `DataService` (or `RealtimeSyncService`), generate a `final transientClientId = Uuid().v4();`.
 You will need to pass this ID to your `DataService` so it can include it in DB calls.
 
 ### Step 3: Update `DataService`
@@ -81,7 +81,7 @@ if (payload.eventType == PostgresChangeEvent.delete) {
 }
 
 // INSERT/UPDATE EVENT
-if (payload.newRecord['transient_client_id'] == _transientClientId) {
+if (payload.newRecord['transient_client_id'] == transientClientId) {
   return; // It was me.
 }
 ref.invalidate(entriesProvider); // It was someone else.
