@@ -1,6 +1,6 @@
-import 'package:dax/helpers/data_ui_helpers.dart';
+import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
 import 'package:dax/providers/riverpod_providers.dart';
-import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/core/utils/get_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -46,7 +46,7 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit vault name'),
+          title: Text('Rename vault'),
           content: TextField(
             controller: vaultNameController,
             decoration: InputDecoration(
@@ -123,7 +123,7 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
                 onPressed: () => _showUpdateNameDialog(vault.name),
-                tooltip: 'Edit name',
+                tooltip: 'Rename vault',
               ),
             ),
             const Divider(),

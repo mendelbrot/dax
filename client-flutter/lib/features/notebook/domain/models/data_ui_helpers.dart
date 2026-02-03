@@ -1,0 +1,80 @@
+import 'package:dax/features/notebook/domain/models/vault.dart';
+import 'package:dax/features/notebook/domain/models/entry.dart';
+import 'package:dax/features/notebook/data/data_service.dart';
+import 'package:dax/core/utils/get_error_message.dart';
+
+class Result {
+  final bool isSuccess;
+  final String message;
+  final dynamic createdId;
+
+  Result(this.isSuccess, this.message, [this.createdId]);
+}
+
+Future<Result> createVault(String name) async {
+  final trimmedName = name.trim();
+  if (trimmedName.isEmpty) {
+    return Result(false, 'Vault name cannot be empty');
+  }
+
+  try {
+    final newVault = await Data.vaults.create(Vault(name: trimmedName));
+    return Result(true, 'Vault created', newVault.id);
+  } catch (e) {
+    return Result(false, 'Error creating vault: ${getErrorMessage(e)}');
+  }
+}
+
+Future<Result> updateVaultName(int vaultId, String newName) async {
+  final trimmedName = newName.trim();
+  if (trimmedName.isEmpty) {
+    return Result(false, 'Vault name cannot be empty');
+  }
+
+  try {
+    await Data.vaults.update(vaultId, Vault(name: trimmedName));
+    return Result(true, 'Vault name updated');
+  } catch (e) {
+    return Result(false, 'Error updating vault: ${getErrorMessage(e)}');
+  }
+}
+
+Future<Result> deleteVault(int vaultId) async {
+  try {
+    await Data.vaults.delete(vaultId);
+    return Result(true, 'Vault deleted');
+  } catch (e) {
+    return Result(false, 'Error deleting vault: ${getErrorMessage(e)}');
+  }
+}
+
+Future<Result> createEntry(int vaultId, String heading) async {
+  final trimmedHeading = heading.trim();
+
+  try {
+    final newEntry = await Data.entries.create(
+      Entry(heading: trimmedHeading, vaultId: vaultId),
+    );
+    return Result(true, 'Entry created', newEntry.id);
+  } catch (e) {
+    return Result(false, 'Error creating entry: ${getErrorMessage(e)}');
+  }
+}
+
+Future<Result> updateEntry(int entryId, Entry updates) async {
+  try {
+    await Data.entries.update(entryId, updates);
+    return Result(true, 'Entry updated');
+  } catch (e) {
+    return Result(false, 'Error updating entry: ${getErrorMessage(e)}');
+  }
+}
+
+Future<Result> deleteEntry(int entryId) async {
+  try {
+    await Data.entries.delete(entryId);
+    return Result(true, 'Entry deleted');
+  } catch (e) {
+    return Result(false, 'Error deleting entry: ${getErrorMessage(e)}');
+  }
+}

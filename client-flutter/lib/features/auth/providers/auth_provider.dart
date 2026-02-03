@@ -1,4 +1,4 @@
-import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/core/utils/get_error_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

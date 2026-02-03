@@ -1,8 +1,8 @@
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:dax/helpers/expiring_set.dart';
-import 'package:dax/services/data_service.dart';
+import 'package:dax/core/utils/expiring_set.dart';
+import 'package:dax/features/notebook/data/data_service.dart';
 
 final realtimeSyncProvider = Provider<RealtimeSyncService>((ref) {
   return RealtimeSyncService(ref);

@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'package:dax/models/entry.dart';
+import 'package:dax/features/notebook/domain/models/entry.dart';
 import 'package:flutter/material.dart';
-import 'package:dax/services/data_service.dart';
+import 'package:dax/features/notebook/data/data_service.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

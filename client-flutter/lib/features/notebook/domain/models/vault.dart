@@ -1,4 +1,4 @@
-import 'package:dax/models/base_model.dart';
+import 'package:dax/core/models/base_model.dart';
 
 class Vault extends BaseModel{
   final int? id;

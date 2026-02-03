@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dax/pages/sign_in_page.dart';
-import 'package:dax/pages/home_page.dart';
-import 'package:dax/pages/vault_page.dart';
-import 'package:dax/pages/entry_page.dart';
-import 'package:dax/pages/vault_settings_page.dart';
-import 'package:dax/providers/auth_provider.dart';
+import 'package:dax/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:dax/features/notebook/presentation/pages/home_page.dart';
+import 'package:dax/features/notebook/presentation/pages/vault_page.dart';
+import 'package:dax/features/notebook/presentation/pages/entry_page.dart';
+import 'package:dax/features/notebook/presentation/pages/vault_settings_page.dart';
+import 'package:dax/features/auth/providers/auth_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Watch only the authentication status to trigger rebuilds/redirects.

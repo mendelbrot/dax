@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:dax/models/entry.dart';
-import 'package:dax/helpers/data_ui_helpers.dart';
-import 'package:dax/helpers/error_handling_helpers.dart';
-import 'package:dax/helpers/formatting_helpers.dart';
+import 'package:dax/features/notebook/domain/models/entry.dart';
+import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
+import 'package:dax/core/utils/get_error_message.dart';
+import 'package:dax/core/utils/fromat_date_string.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -1,7 +1,7 @@
-import 'package:dax/models/entry.dart';
-import 'package:dax/models/vault.dart';
+import 'package:dax/features/notebook/domain/models/entry.dart';
+import 'package:dax/features/notebook/domain/models/vault.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dax/services/data_service.dart';
+import 'package:dax/features/notebook/data/data_service.dart';
 
 import 'package:uuid/uuid.dart';
 

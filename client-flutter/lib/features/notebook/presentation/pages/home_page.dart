@@ -1,9 +1,9 @@
-import 'package:dax/helpers/data_ui_helpers.dart';
+import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
 import 'package:dax/providers/riverpod_providers.dart';
-import 'package:dax/helpers/error_handling_helpers.dart';
+import 'package:dax/core/utils/get_error_message.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dax/providers/auth_provider.dart';
+import 'package:dax/features/auth/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomePage extends ConsumerStatefulWidget {
