@@ -1,63 +1,93 @@
 import 'package:dax/helpers/error_handling_helpers.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AuthProvider extends ChangeNotifier {
-  bool _isAuthenticated = false;
-  String? _userEmail;
-  bool _isLoading = false;
-  String? _errorMessage;
+class AppAuthState {
+  final User? user;
+  final bool isLoading;
+  final String? errorMessage;
 
-  bool get isAuthenticated => _isAuthenticated;
-  String? get userEmail => _userEmail;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  bool get isAuthenticated => user != null;
+  String? get userEmail => user?.email;
 
-  AuthProvider() {
-    _checkAuthState();
-    _listenToAuthChanges();
+  const AppAuthState({
+    this.user,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  AppAuthState copyWith({
+    User? user,
+    bool? isLoading,
+    String? errorMessage,
+    bool clearUser = false,
+  }) {
+    return AppAuthState(
+      user: clearUser ? null : (user ?? this.user),
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage, // If null is passed, it remains null (or clears if we follow strict copyWith pattern, but for error usually we want to explicit set/clear).
+      // Actually, standard copyWith: if null passed, it's ignored. 
+      // To clear error, we need to pass null. But standard copyWith ignores null.
+      // So I'll just reconstruct state in methods to be safe.
+    );
   }
+}
 
-  static User? get currentUser => Supabase.instance.client.auth.currentUser;
-
-  static Stream<AuthState> get authStateChanges => Supabase.instance.client.auth.onAuthStateChange;
-
-  void _checkAuthState() {
-    _isAuthenticated = currentUser != null;
-    _userEmail = currentUser?.email;
-    notifyListeners();
-  }
-
-  void _listenToAuthChanges() {
-    authStateChanges.listen((data) {
+class AuthNotifier extends Notifier<AppAuthState> {
+  @override
+  AppAuthState build() {
+    // Listen to Supabase auth changes
+    final subscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final user = data.session?.user;
-      _isAuthenticated = user != null;
-      _userEmail = user?.email;
-      _errorMessage = null;
-      notifyListeners();
+      // Only update if user changed to avoid unnecessary rebuilds if just token refreshed?
+      // Actually Supabase emits events.
+      if (state.user != user) {
+        state = AppAuthState(
+          user: user,
+          isLoading: false, 
+          errorMessage: null, // Clear error on auth state change (success)
+        );
+      }
     });
+
+    ref.onDispose(() {
+      subscription.cancel();
+    });
+
+    return AppAuthState(
+      user: Supabase.instance.client.auth.currentUser,
+    );
   }
 
   Future<void> sendOTP(String email) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    state = AppAuthState(
+      user: state.user,
+      isLoading: true,
+      errorMessage: null,
+    );
 
     try {
       await Supabase.instance.client.auth.signInWithOtp(email: email.trim());
-      _errorMessage = null;
+      state = AppAuthState(
+        user: state.user,
+        isLoading: false,
+        errorMessage: null,
+      );
     } catch (e) {
-      _errorMessage = getErrorMessage(e);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      state = AppAuthState(
+        user: state.user,
+        isLoading: false,
+        errorMessage: getErrorMessage(e),
+      );
     }
   }
 
   Future<bool> verifyOTP(String email, String token) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    state = AppAuthState(
+      user: state.user,
+      isLoading: true,
+      errorMessage: null,
+    );
 
     try {
       await Supabase.instance.client.auth.verifyOTP(
@@ -65,37 +95,55 @@ class AuthProvider extends ChangeNotifier {
         token: token.trim(),
         type: OtpType.email,
       );
-      _errorMessage = null;
-      _isLoading = false;
-      notifyListeners();
+      // State update for 'user' will happen via the listener in build()
+      // But we still turn off loading here
+      state = AppAuthState(
+        user: state.user, // Listener might update this async, but here we just stop loading
+        isLoading: false,
+        errorMessage: null,
+      );
       return true;
     } catch (e) {
-      _errorMessage = getErrorMessage(e);
-      _isLoading = false;
-      notifyListeners();
+      state = AppAuthState(
+        user: state.user,
+        isLoading: false,
+        errorMessage: getErrorMessage(e),
+      );
       return false;
     }
   }
 
   Future<void> signOut() async {
-    _isLoading = true;
-    notifyListeners();
+    state = AppAuthState(
+      user: state.user,
+      isLoading: true,
+      errorMessage: null,
+    );
 
     try {
       await Supabase.instance.client.auth.signOut();
-      _isAuthenticated = false;
-      _userEmail = null;
-      _errorMessage = null;
+      // State update for 'user' will happen via listener
+      state = AppAuthState(
+        user: state.user,
+        isLoading: false,
+        errorMessage: null,
+      );
     } catch (e) {
-      _errorMessage = getErrorMessage(e);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      state = AppAuthState(
+        user: state.user,
+        isLoading: false,
+        errorMessage: getErrorMessage(e),
+      );
     }
   }
 
   void clearError() {
-    _errorMessage = null;
-    notifyListeners();
+    state = AppAuthState(
+      user: state.user,
+      isLoading: state.isLoading,
+      errorMessage: null,
+    );
   }
 }
+
+final authProvider = NotifierProvider<AuthNotifier, AppAuthState>(AuthNotifier.new);

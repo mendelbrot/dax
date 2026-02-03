@@ -1,6 +1,7 @@
 # Dax Project Roadmap
 
 ## Active Tasks
+- [x] **Refactoring:** App Initialization & Auth Migration to Riverpod
 - [x] **Refactoring:** Convert Frontend IDs to match Database types (`int` for bigints, `String` for UUIDs)
 - [ ] **Architecture:** Investigate interaction between Data Layers and define a clean division of responsibility
 - [ ] Implement Real-time Sync Support

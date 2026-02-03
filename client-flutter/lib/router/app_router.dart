@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dax/pages/sign_in_page.dart';
 import 'package:dax/pages/home_page.dart';
@@ -6,10 +7,15 @@ import 'package:dax/pages/entry_page.dart';
 import 'package:dax/pages/vault_settings_page.dart';
 import 'package:dax/providers/auth_provider.dart';
 
-GoRouter createAppRouter(AuthProvider authProvider) {
+final routerProvider = Provider<GoRouter>((ref) {
+  // Watch only the authentication status to trigger rebuilds/redirects.
+  // By using .select, we prevent the router from rebuilding when transient 
+  // state like 'isLoading' or 'errorMessage' changes, which would otherwise
+  // reset the navigation stack and dispose of current pages.
+  final isAuthenticated = ref.watch(authProvider.select((s) => s.isAuthenticated));
+  
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: authProvider,
     routes: [
       GoRoute(path: '/signin', builder: (context, state) => const SignInPage()),
       GoRoute(
@@ -47,18 +53,17 @@ GoRouter createAppRouter(AuthProvider authProvider) {
       ),
     ],
     redirect: (context, state) {
-      final bool isLoggedIn = authProvider.isAuthenticated;
       final bool isGoingToLogin = state.uri.toString() == '/signin';
 
-      if (!isLoggedIn && !isGoingToLogin) {
+      if (!isAuthenticated && !isGoingToLogin) {
         return '/signin'; // Redirect to sign in if not logged in
       }
 
-      if (isLoggedIn && isGoingToLogin) {
+      if (isAuthenticated && isGoingToLogin) {
         return '/'; // Redirect to home if already logged in but trying to sign in
       }
 
       return null; // No redirection needed
     },
   );
-}
+});

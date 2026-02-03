@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dax/providers/auth_provider.dart';
 
-class SignInPage extends StatefulWidget {
+class SignInPage extends ConsumerStatefulWidget {
   const SignInPage({super.key});
 
   @override
-  State<SignInPage> createState() => _SignInPageState();
+  ConsumerState<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends State<SignInPage> {
+class _SignInPageState extends ConsumerState<SignInPage> {
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -23,8 +23,8 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> _sendCode([String? _]) async {
-    final authProvider = context.read<AuthProvider>();
-    if (authProvider.isLoading) {
+    final authState = ref.read(authProvider);
+    if (authState.isLoading) {
       return;
     }
 
@@ -32,9 +32,14 @@ class _SignInPageState extends State<SignInPage> {
       return;
     }
 
-    await authProvider.sendOTP(_emailController.text);
+    await ref.read(authProvider.notifier).sendOTP(_emailController.text);
 
-    if (authProvider.errorMessage == null && _codeSent == false) {
+    if (!mounted) {
+      return;
+    }
+
+    final newAuthState = ref.read(authProvider);
+    if (newAuthState.errorMessage == null && _codeSent == false) {
       setState(() {
         _codeSent = true;
       });
@@ -42,8 +47,8 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> _verifyCode([String? _]) async {
-    final authProvider = context.read<AuthProvider>();
-    if (authProvider.isLoading) {
+    final authState = ref.read(authProvider);
+    if (authState.isLoading) {
       return;
     }
 
@@ -54,15 +59,17 @@ class _SignInPageState extends State<SignInPage> {
       return;
     }
 
-    final success = await authProvider.verifyOTP(
+    final success = await ref.read(authProvider.notifier).verifyOTP(
       _emailController.text,
       _otpController.text,
     );
 
     if (!success && mounted) {
+      // Need to read the latest error message
+      final errorState = ref.read(authProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Invalid code'),
+          content: Text(errorState.errorMessage ?? 'Invalid code'),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,7 +78,7 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    AuthProvider authProvider = context.watch<AuthProvider>();
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -118,7 +125,7 @@ class _SignInPageState extends State<SignInPage> {
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: authProvider.isLoading
+                        child: authState.isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -128,11 +135,11 @@ class _SignInPageState extends State<SignInPage> {
                               )
                             : const Text('Send Code'),
                       ),
-                      if (authProvider.errorMessage != null)
+                      if (authState.errorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
                           child: Text(
-                            authProvider.errorMessage!,
+                            authState.errorMessage!,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.error,
                             ),
@@ -172,7 +179,7 @@ class _SignInPageState extends State<SignInPage> {
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: authProvider.isLoading
+                        child: authState.isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
@@ -192,7 +199,7 @@ class _SignInPageState extends State<SignInPage> {
                                 _codeSent = false;
                                 _otpController.clear();
                               });
-                              context.read<AuthProvider>().clearError();
+                              ref.read(authProvider.notifier).clearError();
                             },
                             child: const Text('Change Email'),
                           ),
@@ -202,11 +209,11 @@ class _SignInPageState extends State<SignInPage> {
                           ),
                         ],
                       ),
-                      if (authProvider.errorMessage != null)
+                      if (authState.errorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 16),
                           child: Text(
-                            authProvider.errorMessage!,
+                            authState.errorMessage!,
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.error,
                             ),
