@@ -22,8 +22,8 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _showUpdateNameDialog() {
-    final vaultNameController = TextEditingController();
+  void _showUpdateNameDialog(String? vaultName) {
+    final vaultNameController = TextEditingController(text: vaultName);
 
     Future<void> onSubmit() async {
       final Result(:isSuccess, :message) = await updateVaultName(
@@ -122,7 +122,7 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
               ),
               trailing: IconButton(
                 icon: const Icon(Icons.edit),
-                onPressed: _showUpdateNameDialog,
+                onPressed: () => _showUpdateNameDialog(vault.name),
                 tooltip: 'Edit name',
               ),
             ),
