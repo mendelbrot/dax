@@ -7,4 +7,4 @@ globs:
 # Flutter Frontend Guidelines
 
 * NEVER run the app to verify changes. The user will do this. ALWAYS check for linting errors after executing a task.
-* SHOULD declare wdgets with const whenever possible, as in `const SizedBox(height: 48),`
+* SHOULD declare widgets with const whenever possible, as in `const SizedBox(height: 48),`

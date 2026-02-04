@@ -4,7 +4,7 @@ globs:
   - supabase/**/*
 ---
 
-**IMPORTANT: NEVER CREATE MIGRATIONS OR MIGRATION FILES**
+**IMPORTANT: NEVER CREATE MIGRATIONS OR MIGRATION FILES: edit the schemas instead**
 
 # Supabase/PostgreSQL Backend Guidelines
 
