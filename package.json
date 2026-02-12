@@ -9,6 +9,7 @@
   "scripts": {
     "mermaid": "bash ./notes-dax/mermaid.sh",
     "flutter": "cd client-flutter && flutter run --dart-define-from-file=.env",
+    "flutter:analyze": "cd /home/greg/repos/dax/client-flutter && flutter analyze --no-pub",
     "db:diff": "supabase db diff -f",
     "create-user": "node scripts/create-user.js"
   },
