@@ -46,10 +46,10 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Rename vault'),
+          title: const Text('Rename vault'),
           content: TextField(
             controller: vaultNameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Vault name',
               border: OutlineInputBorder(),
             ),
@@ -59,9 +59,9 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
           actions: [
             TextButton(
               onPressed: Navigator.of(context).pop,
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
-            TextButton(onPressed: onSubmit, child: Text('Save')),
+            TextButton(onPressed: onSubmit, child: const Text('Save')),
           ],
         );
       },
@@ -88,17 +88,17 @@ class _VaultSettingsPageState extends ConsumerState<VaultSettingsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete vault'),
-          content: Text(
+          title: const Text('Delete vault'),
+          content: const Text(
             'Are you sure you want to delete this vault? This action cannot be undone.',
           ),
           actions: [
             TextButton(
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               onPressed: Navigator.of(context).pop,
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
-            TextButton(onPressed: onSubmit, child: Text('Delete')),
+            TextButton(onPressed: onSubmit, child: const Text('Delete')),
           ],
         );
       },

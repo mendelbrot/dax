@@ -43,10 +43,10 @@ class _HomePageState extends ConsumerState<HomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Create vault'),
+          title: const Text('Create vault'),
           content: TextField(
             controller: vaultNameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               labelText: 'Vault name',
               border: OutlineInputBorder(),
             ),
@@ -56,9 +56,9 @@ class _HomePageState extends ConsumerState<HomePage> {
           actions: [
             TextButton(
               onPressed: Navigator.of(context).pop,
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
-            TextButton(onPressed: onSubmit, child: Text('Save')),
+            TextButton(onPressed: onSubmit, child: const Text('Save')),
           ],
         );
       },
@@ -72,13 +72,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.add),
+          icon: const Icon(Icons.add),
           onPressed: _showCreateVaultDialog,
           tooltip: 'Create new vault',
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await AuthHelper.signOut();
             },
@@ -93,7 +93,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.folder_outlined, size: 64, color: Colors.grey[400]),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'No vaults yet',
                 style: TextStyle(fontSize: 18, color: Colors.grey[600]),
@@ -104,18 +104,18 @@ class _HomePageState extends ConsumerState<HomePage> {
 
         // 2. Data State: List has items
         AsyncValue(value: final vaults?) => ListView.builder(
-          padding: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
           itemCount: vaults.length,
           itemBuilder: (context, index) {
             final vault = vaults[index];
             return Container(
-              margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade400),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: ListTile(
-                contentPadding: EdgeInsets.symmetric(
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 4,
                 ),
@@ -131,18 +131,18 @@ class _HomePageState extends ConsumerState<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
               Text('Error: ${getErrorMessage(error)}'),
               TextButton(
                 onPressed: () => ref.invalidate(vaultsProvider),
-                child: Text('Retry'),
+                child: const Text('Retry'),
               ),
             ],
           ),
         ),
 
         // 4. Loading State
-        _ => Center(child: CircularProgressIndicator()),
+        _ => const Center(child: CircularProgressIndicator()),
       },
     );
   }

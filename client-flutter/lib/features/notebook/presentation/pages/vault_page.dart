@@ -93,7 +93,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
         title: Text(vaultDetailAsync.value?.name ?? ''),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               context.go('/vault/${widget.vaultId}/settings');
             },
@@ -110,7 +110,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red, size: 40),
+                    const Icon(Icons.error_outline, color: Colors.red, size: 40),
                     Text('Error: ${getErrorMessage(error)}'),
                     TextButton(
                       onPressed: () {
@@ -118,12 +118,12 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                         ref.invalidate(entriesProvider(widget.vaultId));
                         ref.invalidate(entriesSearchProvider);
                       },
-                      child: Text('Retry'),
+                      child: const Text('Retry'),
                     ),
                   ],
                 ),
               ),
-              _ => Center(child: CircularProgressIndicator()),
+              _ => const Center(child: CircularProgressIndicator()),
             },
           ),
         ],
@@ -133,14 +133,14 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             child: CallbackShortcuts(
               bindings: {
-                SingleActivator(LogicalKeyboardKey.arrowDown): () {
+                const SingleActivator(LogicalKeyboardKey.arrowDown): () {
                   _firstEntryFocusNode.requestFocus();
                 },
               },
@@ -152,17 +152,17 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                 decoration: InputDecoration(
                   hintText: 'Search or create...',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
               ),
             ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           SizedBox(
             width: 48.0,
             height: 48.0,
             child: IconButton.filled(
-              icon: Icon(Icons.add),
+              icon: const Icon(Icons.add),
               onPressed: _createEntry,
               tooltip: 'Create Note',
               style: IconButton.styleFrom(
@@ -189,8 +189,8 @@ class _VaultPageState extends ConsumerState<VaultPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (searchQuery.length < 2)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Text(
                     'Recent',
                   ),
@@ -198,8 +198,8 @@ class _VaultPageState extends ConsumerState<VaultPage> {
               Expanded(
                 child: ListView.separated(
                   itemCount: entries.length,
-                  separatorBuilder: (_, _) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                  separatorBuilder: (_, _) => const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Divider(height: 1),
                   ),
                   itemBuilder: (context, index) {
@@ -208,11 +208,11 @@ class _VaultPageState extends ConsumerState<VaultPage> {
 
                     return CallbackShortcuts(
                       bindings: {
-                        SingleActivator(LogicalKeyboardKey.enter): () =>
+                        const SingleActivator(LogicalKeyboardKey.enter): () =>
                             _openEntry(entry.id!),
 
                         if (isFirstItem)
-                          SingleActivator(LogicalKeyboardKey.arrowUp): () {
+                          const SingleActivator(LogicalKeyboardKey.arrowUp): () {
                             _searchFocusNode.requestFocus();
                           },
                       },
@@ -220,7 +220,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                         focusNode: isFirstItem ? _firstEntryFocusNode : null,
                         title: Text(
                           entry.heading ?? '',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
                           (entry.body ?? '').split('\n').first,
@@ -235,21 +235,13 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                                 children: [
                                   Text(
                                     FormatHelper.formatDateString(entry.updatedAt),
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
                                     FormatHelper.formatDateString(entry.createdAt),
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.color
-                                          ?.withValues(alpha: 0.6),
+                                    style: const TextStyle(
                                       fontSize: 12,
                                     ),
                                   ),

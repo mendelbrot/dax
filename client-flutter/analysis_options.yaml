@@ -15,6 +15,10 @@ analyzer:
     - "**/*.freezed.dart"
   plugins:
     - custom_lint
+  errors:
+    prefer_const_constructors: error
+    prefer_const_declarations: error
+    prefer_const_literals_to_create_immutables: error
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -28,6 +32,9 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 
