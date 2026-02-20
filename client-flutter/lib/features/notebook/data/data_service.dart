@@ -1,4 +1,4 @@
-import 'package:dax/core/models/base_model.dart';
+import 'package:dax/shared/models/base_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dax/features/notebook/domain/models/vault.dart';
 import 'package:dax/features/notebook/domain/models/entry.dart';

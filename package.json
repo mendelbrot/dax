@@ -7,11 +7,12 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "mermaid": "bash ./notes-dax/mermaid.sh",
+    "mermaid": "bash ./notes-dax/scripts/mermaid.sh",
     "flutter": "cd client-flutter && flutter run --dart-define-from-file=.env",
     "flutter:analyze": "cd /home/greg/repos/dax/client-flutter && flutter analyze --no-pub",
     "db:diff": "supabase db diff -f",
-    "create-user": "node scripts/create-user.js"
+    "create-user": "node scripts/create-user.js",
+    "log": "node ./notes-dax/scripts/dev-log.js"
   },
   "devDependencies": {
     "@mermaid-js/mermaid-cli": "^11.12.0",

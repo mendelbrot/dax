@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dax/features/auth/providers/auth_provider.dart';
 
-class SignInPage extends ConsumerStatefulWidget {
+class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
 
   @override
-  ConsumerState<SignInPage> createState() => _SignInPageState();
+  State<SignInPage> createState() => _SignInPageState();
 }
 
-class _SignInPageState extends ConsumerState<SignInPage> {
+class _SignInPageState extends State<SignInPage> {
+  final _controller = AuthProvider();
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -19,12 +19,12 @@ class _SignInPageState extends ConsumerState<SignInPage> {
   void dispose() {
     _emailController.dispose();
     _otpController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   Future<void> _sendCode([String? _]) async {
-    final authState = ref.read(authProvider);
-    if (authState.isLoading) {
+    if (_controller.isLoading) {
       return;
     }
 
@@ -32,14 +32,13 @@ class _SignInPageState extends ConsumerState<SignInPage> {
       return;
     }
 
-    await ref.read(authProvider.notifier).sendOTP(_emailController.text);
+    await _controller.sendOTP(_emailController.text);
 
     if (!mounted) {
       return;
     }
 
-    final newAuthState = ref.read(authProvider);
-    if (newAuthState.errorMessage == null && _codeSent == false) {
+    if (_controller.errorMessage == null && _codeSent == false) {
       setState(() {
         _codeSent = true;
       });
@@ -47,8 +46,7 @@ class _SignInPageState extends ConsumerState<SignInPage> {
   }
 
   Future<void> _verifyCode([String? _]) async {
-    final authState = ref.read(authProvider);
-    if (authState.isLoading) {
+    if (_controller.isLoading) {
       return;
     }
 
@@ -59,17 +57,15 @@ class _SignInPageState extends ConsumerState<SignInPage> {
       return;
     }
 
-    final success = await ref.read(authProvider.notifier).verifyOTP(
+    final success = await _controller.verifyOTP(
       _emailController.text,
       _otpController.text,
     );
 
     if (!success && mounted) {
-      // Need to read the latest error message
-      final errorState = ref.read(authProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorState.errorMessage ?? 'Invalid code'),
+          content: Text(_controller.errorMessage ?? 'Invalid code'),
           backgroundColor: Colors.red,
         ),
       );
@@ -78,8 +74,6 @@ class _SignInPageState extends ConsumerState<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -89,139 +83,144 @@ class _SignInPageState extends ConsumerState<SignInPage> {
               width: 400,
               child: Form(
                 key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (!_codeSent) ...[
-                      Text(
-                        'Sign In',
-                        style: Theme.of(context).textTheme.headlineLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 48),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.send,
-                        onFieldSubmitted: _sendCode,
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _sendCode,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: authState.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Send Code'),
-                      ),
-                      if (authState.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                            authState.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
+                child: ListenableBuilder(
+                  listenable: _controller,
+                  builder: (context, _) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (!_codeSent) ...[
+                          Text(
+                            'Sign In',
+                            style: Theme.of(context).textTheme.headlineLarge,
                             textAlign: TextAlign.center,
                           ),
-                        ),
-                    ] else ...[
-                      Text(
-                        'Enter Code',
-                        style: Theme.of(context).textTheme.headlineLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'We sent a 6-digit code to\n${_emailController.text}',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 48),
-                      TextFormField(
-                        controller: _otpController,
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: _verifyCode,
-                        maxLength: 6,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24, letterSpacing: 8),
-                        decoration: const InputDecoration(
-                          labelText: 'Code',
-                          border: OutlineInputBorder(),
-                          counterText: '',
-                        ),
-                      ),
-                      SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _verifyCode,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: authState.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Verify Code'),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _codeSent = false;
-                                _otpController.clear();
-                              });
-                              ref.read(authProvider.notifier).clearError();
+                          const SizedBox(height: 48),
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.send,
+                            onFieldSubmitted: _sendCode,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
                             },
-                            child: const Text('Change Email'),
                           ),
-                          TextButton(
+                          const SizedBox(height: 24),
+                          ElevatedButton(
                             onPressed: _sendCode,
-                            child: const Text('Resend Code'),
-                          ),
-                        ],
-                      ),
-                      if (authState.errorMessage != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                            authState.errorMessage!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
+                            child: _controller.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Send Code'),
+                          ),
+                          if (_controller.errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Text(
+                                _controller.errorMessage!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ] else ...[
+                          Text(
+                            'Enter Code',
+                            style: Theme.of(context).textTheme.headlineLarge,
                             textAlign: TextAlign.center,
                           ),
-                        ),
-                    ],
-                  ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'We sent a 6-digit code to\n${_emailController.text}',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 48),
+                          TextFormField(
+                            controller: _otpController,
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: _verifyCode,
+                            maxLength: 6,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 24, letterSpacing: 8),
+                            decoration: const InputDecoration(
+                              labelText: 'Code',
+                              border: OutlineInputBorder(),
+                              counterText: '',
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: _verifyCode,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
+                            child: _controller.isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Verify Code'),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _codeSent = false;
+                                    _otpController.clear();
+                                  });
+                                  _controller.clearError();
+                                },
+                                child: const Text('Change Email'),
+                              ),
+                              TextButton(
+                                onPressed: _sendCode,
+                                child: const Text('Resend Code'),
+                              ),
+                            ],
+                          ),
+                          if (_controller.errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Text(
+                                _controller.errorMessage!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

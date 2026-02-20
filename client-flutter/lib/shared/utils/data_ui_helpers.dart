@@ -1,7 +1,7 @@
 import 'package:dax/features/notebook/domain/models/vault.dart';
 import 'package:dax/features/notebook/domain/models/entry.dart';
 import 'package:dax/features/notebook/data/data_service.dart';
-import 'package:dax/core/utils/get_error_message.dart';
+import 'package:dax/shared/utils/get_error_message.dart';
 
 class Result {
   final bool isSuccess;

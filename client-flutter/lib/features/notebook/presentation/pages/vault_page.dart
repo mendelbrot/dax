@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:dax/features/notebook/domain/models/entry.dart';
 import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
-import 'package:dax/core/utils/get_error_message.dart';
-import 'package:dax/core/utils/fromat_date_string.dart';
+import 'package:dax/shared/utils/format_helper.dart';
+import 'package:dax/shared/utils/get_error_message.dart';
+import 'package:dax/shared/utils/fromat_date_string.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -234,7 +235,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    formatDateString(entry.updatedAt),
+                                    FormatHelper.formatDateString(entry.updatedAt),
                                     style: TextStyle(
                                       color: Theme.of(
                                         context,
@@ -243,7 +244,7 @@ class _VaultPageState extends ConsumerState<VaultPage> {
                                     ),
                                   ),
                                   Text(
-                                    formatDateString(entry.createdAt),
+                                    FormatHelper.formatDateString(entry.createdAt),
                                     style: TextStyle(
                                       color: Theme.of(context)
                                           .textTheme
