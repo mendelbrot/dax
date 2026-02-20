@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dax/features/auth/providers/auth_provider.dart';
+import 'package:dax/features/auth/presentation/pages/sign_in_page/sign_in_page_controller.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -9,11 +9,10 @@ class SignInPage extends StatefulWidget {
 }
 
 class _SignInPageState extends State<SignInPage> {
-  final _controller = AuthProvider();
+  final _controller = SignInPageController();
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _codeSent = false;
 
   @override
   void dispose() {
@@ -33,16 +32,6 @@ class _SignInPageState extends State<SignInPage> {
     }
 
     await _controller.sendOTP(_emailController.text);
-
-    if (!mounted) {
-      return;
-    }
-
-    if (_controller.errorMessage == null && _codeSent == false) {
-      setState(() {
-        _codeSent = true;
-      });
-    }
   }
 
   Future<void> _verifyCode([String? _]) async {
@@ -90,7 +79,7 @@ class _SignInPageState extends State<SignInPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (!_codeSent) ...[
+                        if (!_controller.codeSent) ...[
                           Text(
                             'Sign In',
                             style: Theme.of(context).textTheme.headlineLarge,
@@ -187,24 +176,30 @@ class _SignInPageState extends State<SignInPage> {
                                 : const Text('Verify Code'),
                           ),
                           const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _codeSent = false;
-                                    _otpController.clear();
-                                  });
-                                  _controller.clearError();
-                                },
-                                child: const Text('Change Email'),
-                              ),
-                              TextButton(
-                                onPressed: _sendCode,
-                                child: const Text('Resend Code'),
-                              ),
-                            ],
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_horiz),
+                              tooltip: 'More Options',
+                              onSelected: (value) {
+                                if (value == 'change_email') {
+                                  _otpController.clear();
+                                  _controller.reset();
+                                } else if (value == 'resend_code') {
+                                  _sendCode();
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'resend_code',
+                                  child: Text('Resend Code'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'change_email',
+                                  child: Text('Change Email'),
+                                ),
+                              ],
+                            ),
                           ),
                           if (_controller.errorMessage != null)
                             Padding(

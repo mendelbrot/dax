@@ -3,7 +3,6 @@ import 'package:dax/features/notebook/domain/models/entry.dart';
 import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
 import 'package:dax/shared/utils/format_helper.dart';
 import 'package:dax/shared/utils/get_error_message.dart';
-import 'package:dax/shared/utils/fromat_date_string.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

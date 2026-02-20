@@ -23,15 +23,12 @@ Dax is a cross-platform application for saving and searching personal notes.
 - **`notes-dax/assets/`**: Visual assets, including:
     - `diagrams/`: Mermaid source files (`.mmd`).
     - `images/`: Generated SVG diagrams (via `npm run mermaid`) and other images.
-- **`notes-dax/dev-logs/`**: These files are for the developer and the agent to write about current thoughts and tasks. Keep it concise and informative for your future self. For example include some key files edited. Think of these logs as your memory. You write your logs in the `Agent Logs` section.
+- **`notes-dax/dev-logs/`**: These files are for the developer and the agent to write about current thoughts and tasks. 
 
-This yaml frontmatter goes in all markdown documentation:
+### How to use agent logs
+You append your logs to the the `Agent Logs` section (don't edit previous writing).  Currently I favor small tasks over big plans. Generally, add a sentence for each task, just as you would tell me what you did in the CLI. See your previous logs for writing style reference. If you forget and I say "log this" then just copy what you told me in our conversation into the log.
 
-```
----
-date: <The current date as YYYY-MM-DD>
----
-```
+Think of these logs as a kind of memory. Read the most recent log file to get up to speed on the project.
 
 ### Visual Documentation (Mermaid)
 - **Workflow:** Store Mermaid source files in `notes-dax/assets/diagrams/`.

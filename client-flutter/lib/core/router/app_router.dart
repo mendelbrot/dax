@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dax/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:dax/features/auth/presentation/pages/sign_in_page/sign_in_page.dart';
 import 'package:dax/features/notebook/presentation/pages/home_page.dart';
 import 'package:dax/features/notebook/presentation/pages/vault_page.dart';
 import 'package:dax/features/notebook/presentation/pages/entry_page.dart';

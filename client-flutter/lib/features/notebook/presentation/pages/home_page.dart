@@ -1,9 +1,9 @@
 import 'package:dax/features/notebook/domain/models/data_ui_helpers.dart';
 import 'package:dax/providers/riverpod_providers.dart';
 import 'package:dax/shared/utils/get_error_message.dart';
+import 'package:dax/shared/utils/auth_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dax/features/auth/providers/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -80,7 +80,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () async {
-              await ref.read(authProvider.notifier).signOut();
+              await AuthHelper.signOut();
             },
             tooltip: 'Sign out',
           ),
